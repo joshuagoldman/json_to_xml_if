@@ -75,21 +75,6 @@ fn unexpected_character_error(char_val: &char, state: &State) {
     )
 }
 
-fn token_type_json_array_decision(
-    token_type_json_array: TokenStage<ArrayValType>,
-    char_val: &char,
-    state: &mut State,
-) {
-    match token_type_json_array {
-        TokenStage::Opening => json_array_open_case(char_val, state),
-        TokenStage::Content(token_stage_content) => {
-            token_stage_content_decision(token_stage_content, char_val, state)
-        }
-        TokenStage::ItemSeparator => json_array_item_separator_case(char_val, state),
-        TokenStage::Closing => json_array_closed_case(char_val, state),
-    }
-}
-
 fn e_det_tomt_varde_for_i_helvete_javla_fittsugarkuk(char_val: &char) -> bool {
     vec![' ', '\t', '\r'].iter().any(|x| x == char_val)
 }
@@ -98,20 +83,10 @@ fn json_val_open_case_char_empty_val(char_val: &char, state: &mut State) -> bool
     if !e_det_tomt_varde_for_i_helvete_javla_fittsugarkuk(char_val) {
         return false;
     }
-    match state.fields[state.fields.len() - 1].token_type.clone() {
-        TokenType::JsonObject(TokenStage::Content(KeyValState::ValState(KeyValType::JsonStr(
-            JsonStr::Open(json_str),
-        )))) => {
-            key_val_json_str_open_case(char_val, state, &json_str);
-            true
-        }
-        TokenType::JsonArray(TokenStage::Content(ArrayValType::JsonStr(JsonStr::Open(
-            json_str,
-        )))) => {
-            array_val_json_str_open_case(char_val, state, &json_str);
-            true
-        }
-        _ => true,
+    match state.nodes[state.nodes.len() - 1].stage.clone() {
+        TagStage::Init => false,
+        TagStage::Content => todo!(),
+        TagStage::End => false,
     }
 }
 
