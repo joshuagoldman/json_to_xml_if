@@ -2,24 +2,27 @@ use self::{open_tag::open_tag_key_stage_open, xml_attribute::xml_attribute_value
 
 mod cdata;
 mod close_tag;
+mod json_build;
 mod open_tag;
 mod xml_attribute;
 
 #[derive(Clone, Debug)]
 struct Node {
-    node_type: NodeType,
+    child_nodes: Vec<NodeStrResult>,
     node_key: Option<String>,
     xml_attributes: Vec<XmlAttribute>,
     stage: NodeStage,
+    is_nested: bool,
 }
 
 impl Node {
     fn new() -> Self {
         Self {
-            node_type: NodeType::Object(String::new()),
+            child_nodes: Vec::new(),
             stage: NodeStage::OpenTag(OpenTagStage::Init),
             xml_attributes: Vec::new(),
             node_key: None,
+            is_nested: false,
         }
     }
 }
@@ -82,9 +85,11 @@ enum NodeStage {
 }
 
 #[derive(Debug, Clone)]
-struct ArrayNodes {
-    node_str_values: Vec<String>,
+struct NodeStrResult {
+    xml_attributes_str: String,
+    str_value: String,
     key: String,
+    is_nested: bool,
 }
 
 #[derive(Debug)]
@@ -113,10 +118,17 @@ impl State {
         self.nodes[len].stage = node_stage;
     }
 
-    fn update_node_type(&mut self, node_type: NodeType) {
+    fn update_is_nested(&mut self, is_nested: bool) {
         let len = self.nodes.len() - 1;
 
-        self.nodes[len].node_type = Some(node_type);
+        self.nodes[len].is_nested = is_nested;
+    }
+
+    fn update_child_nodes(&mut self, child_node_result: NodeStrResult) {
+        let len = self.nodes.len() - 1;
+        if self.nodes.len() > 1 {
+            self.nodes[len].child_nodes.push(child_node_result);
+        }
     }
 
     fn update_attribute_key(&mut self, key: &String) {
@@ -177,7 +189,7 @@ fn should_not_ignore_white_space(char_val: &char, state: &mut State) -> bool {
         return false;
     }
     match state.nodes[state.nodes.len() - 1].stage.clone() {
-        NodeStage::OpenTag(OpenTagStage::Key(KeyStage::Open)) => {
+        NodeStage::OpenTag(OpenTagStage::Key) => {
             if let None = state.nodes[state.nodes.len() - 1].node_key {
                 return false;
             }

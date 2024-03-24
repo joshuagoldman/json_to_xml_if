@@ -11,8 +11,7 @@ pub fn open_tag_stage_cdata_open(char_val: &char, state: &mut State, curr_val: &
         '<' => {
             if new_string_val.ends_with("]]>") {
                 state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::ForwardSlash));
-                let _ = new_string_val.split_off(new_string_val.len() - 4);
-                state.update_node_type(NodeType::String(new_string_val));
+                state.update_is_nested(false);
             } else {
                 state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValueCData(
                     new_string_val,

@@ -25,7 +25,7 @@ pub fn open_tag_init(char_val: &char, state: &mut State) {
     if let None = regex.captures(char_val.to_string().as_str()) {
         panic!("unexpected tag key name at row {}", state.curr_row_num)
     }
-    let new_key = key_update(state, char_val);
+    let _ = key_update(state, char_val);
     state.update_node_stage(NodeStage::OpenTag(OpenTagStage::Key));
 }
 
@@ -56,16 +56,16 @@ pub fn closed_key_is_angle_bracket(char_val: &char, state: &mut State) {
             state.update_node_stage(NodeStage::OpenTag(OpenTagStage::IsEmptyValue));
         }
         _ => {
-            state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValueCData(
-                String::new(),
-            )));
+            state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValue(String::new())));
         }
     }
 }
 
 pub fn closed_key_is_empty_value(char_val: &char, state: &mut State) {
     match char_val {
-        '/' => state.update_node_type(NodeType::String(String::new())),
+        '/' => {
+            state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::Key));
+        }
         _ => {
             state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValue(String::new())));
         }
@@ -84,9 +84,12 @@ pub fn open_tag_value_stage(char_val: &char, state: &mut State, node_val: &Strin
         }
     } else if new_string_val.starts_with("<") {
         state.nodes.push(Node::new());
+        state.update_is_nested(true);
+        state.curr_indent += 1;
         state.update_node_stage(NodeStage::OpenTag(OpenTagStage::Key));
     } else if new_string_val.len() > 1 && char_val == &'<' {
         state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValue(new_string_val)));
+        state.update_is_nested(false);
     } else {
         state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValue(new_string_val)));
     }
