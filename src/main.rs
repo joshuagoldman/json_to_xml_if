@@ -27,4 +27,20 @@ mod tests {
             Err(_) => assert!(false),
         }
     }
+
+    #[test]
+    fn test_parse_to_json() {
+        let json = include_str!("./embedded_resources/xml_example.xml");
+        let result = to_if_req(&json.to_string());
+
+        match result {
+            Ok(ok_res) => {
+                let mut file = File::create("/home/joshua/Public/Tests/if_to_json.json").unwrap();
+
+                file.write_all(ok_res.as_bytes()).unwrap();
+                assert!(true)
+            }
+            Err(_) => assert!(false),
+        }
+    }
 }

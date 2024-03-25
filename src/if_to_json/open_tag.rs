@@ -1,8 +1,8 @@
 use regex::Regex;
 
 use super::{
-    ClosedTagStage, KeyStage, Node, NodeStage, NodeType, OpenTagStage, State, ValueStage,
-    XmlAttributeStage,
+    json_build::add_key_val_node_result, ClosedTagStage, Node, NodeStage, OpenTagStage, State,
+    ValueStage, XmlAttributeStage,
 };
 
 pub fn key_update(state: &mut State, char_val: &char) -> String {
@@ -32,9 +32,12 @@ pub fn open_tag_init(char_val: &char, state: &mut State) {
 pub fn open_tag_key_stage_open(char_val: &char, state: &mut State, is_white_space: bool) {
     let regex = Regex::new(r"^[aA-zZ]").unwrap();
     if is_white_space {
-        state.update_node_stage(NodeStage::OpenTag(OpenTagStage::Attributes(
-            XmlAttributeStage::AttributeKey(ValueStage::Open(String::new())),
-        )));
+        let last_node = state.nodes[state.nodes.len() - 1].clone();
+        if last_node.node_key.is_some() {
+            state.update_node_stage(NodeStage::OpenTag(OpenTagStage::Attributes(
+                XmlAttributeStage::AttributeKey(ValueStage::Open(String::new())),
+            )));
+        }
     } else {
         match char_val {
             '>' => {
@@ -55,6 +58,9 @@ pub fn closed_key_is_angle_bracket(char_val: &char, state: &mut State) {
         '<' => {
             state.update_node_stage(NodeStage::OpenTag(OpenTagStage::IsEmptyValue));
         }
+        '/' => {
+            state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::ForwardSlash));
+        }
         _ => {
             state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValue(String::new())));
         }
@@ -64,32 +70,36 @@ pub fn closed_key_is_angle_bracket(char_val: &char, state: &mut State) {
 pub fn closed_key_is_empty_value(char_val: &char, state: &mut State) {
     match char_val {
         '/' => {
-            state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::Key));
+            add_key_val_node_result(state, &String::new());
+            state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::ForwardSlash));
         }
         _ => {
-            state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValue(String::new())));
+            state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValue(format!(
+                "<{}",
+                char_val
+            ))));
         }
     }
 }
 
 pub fn open_tag_value_stage(char_val: &char, state: &mut State, node_val: &String) {
+    let regex = Regex::new(r"^\<[aA-zZ]").unwrap();
     let new_string_val = format!("{}{}", node_val, char_val);
-    if new_string_val.starts_with("<!") {
-        if new_string_val == "![CDATA[" {
-            state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValueCData(
-                String::new(),
-            )));
-        } else {
-            state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValue(new_string_val)));
-        }
-    } else if new_string_val.starts_with("<") {
+    if new_string_val.starts_with("<!") && new_string_val.len() == 3 {
+        state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValueCData(
+            String::new(),
+        )));
+    } else if regex.is_match(new_string_val.as_str()) {
         state.nodes.push(Node::new());
         state.update_is_nested(true);
         state.curr_indent += 1;
+        let len = state.nodes.len() - 1;
+        let mut new_string_split_off = new_string_val.clone();
+        let _ = new_string_split_off.split_off(0);
+        state.nodes[len.clone()].node_key = Some(new_string_split_off);
         state.update_node_stage(NodeStage::OpenTag(OpenTagStage::Key));
-    } else if new_string_val.len() > 1 && char_val == &'<' {
-        state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValue(new_string_val)));
-        state.update_is_nested(false);
+    } else if char_val == &'<' {
+        state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::ForwardSlash));
     } else {
         state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValue(new_string_val)));
     }

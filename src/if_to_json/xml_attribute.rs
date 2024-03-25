@@ -1,8 +1,7 @@
 use regex::Regex;
 
 use super::{
-    unexpected_character_error, KeyStage, Node, NodeStage, OpenTagStage, State, ValueStage,
-    XmlAttributeStage,
+    unexpected_character_error, NodeStage, OpenTagStage, State, ValueStage, XmlAttributeStage,
 };
 
 pub fn xml_attribute_key_open(char_val: &char, state: &mut State, curr_xml_attr_key: &String) {
@@ -10,6 +9,9 @@ pub fn xml_attribute_key_open(char_val: &char, state: &mut State, curr_xml_attr_
     let new_key = format!("{}{}", curr_xml_attr_key, char_val);
     match char_val {
         '=' => {
+            if curr_xml_attr_key.is_empty() {
+                unexpected_character_error(char_val, state)
+            }
             state.update_node_stage(NodeStage::OpenTag(OpenTagStage::Attributes(
                 XmlAttributeStage::AttributeKey(ValueStage::Closed),
             )));
@@ -19,6 +21,7 @@ pub fn xml_attribute_key_open(char_val: &char, state: &mut State, curr_xml_attr_
             if !curr_xml_attr_key.is_empty() {
                 unexpected_character_error(char_val, state)
             }
+
             state.update_node_stage(NodeStage::OpenTag(OpenTagStage::Key))
         }
         _ => {

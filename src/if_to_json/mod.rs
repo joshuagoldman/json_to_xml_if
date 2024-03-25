@@ -1,4 +1,18 @@
-use self::{open_tag::open_tag_key_stage_open, xml_attribute::xml_attribute_value_closed};
+use self::{
+    cdata::open_tag_stage_cdata_open,
+    close_tag::{
+        closed_tag_angle_bracket, closed_tag_key_stage, closed_tag_sibling_or_closing,
+        closed_tag_value_stage_forward_slash,
+    },
+    open_tag::{
+        closed_key_is_angle_bracket, closed_key_is_empty_value, open_tag_init,
+        open_tag_key_stage_open, open_tag_value_stage,
+    },
+    xml_attribute::{
+        xml_attribute_key_closed, xml_attribute_key_open, xml_attribute_value_closed,
+        xml_attribute_value_open,
+    },
+};
 
 mod cdata;
 mod close_tag;
@@ -8,7 +22,7 @@ mod xml_attribute;
 
 #[derive(Clone, Debug)]
 struct Node {
-    child_nodes: Vec<NodeStrResult>,
+    node_result: ChildNodesOrKeyVal,
     node_key: Option<String>,
     xml_attributes: Vec<XmlAttribute>,
     stage: NodeStage,
@@ -18,7 +32,11 @@ struct Node {
 impl Node {
     fn new() -> Self {
         Self {
-            child_nodes: Vec::new(),
+            node_result: ChildNodesOrKeyVal::KeyValue(NodeStrResult {
+                xml_attributes_str: String::new(),
+                str_value: String::new(),
+                key: String::new(),
+            }),
             stage: NodeStage::OpenTag(OpenTagStage::Init),
             xml_attributes: Vec::new(),
             node_key: None,
@@ -28,17 +46,15 @@ impl Node {
 }
 
 #[derive(Debug, Clone)]
-struct XmlAttribute {
-    attribute_key: String,
-    attribute_val: String,
+enum ChildNodesOrKeyVal {
+    KeyValue(NodeStrResult),
+    ChildNodes(Vec<NodeStrResult>),
 }
 
 #[derive(Debug, Clone)]
-enum NodeType {
-    Array(Vec<String>),
-    Object(String),
-    Number(i32),
-    String(String),
+struct XmlAttribute {
+    attribute_key: String,
+    attribute_val: String,
 }
 
 #[derive(Debug, Clone)]
@@ -48,15 +64,15 @@ enum ValueStage {
 }
 
 #[derive(Debug, Clone)]
-enum KeyStage {
-    Open,
-    Closed,
-}
-
-#[derive(Debug, Clone)]
 enum XmlAttributeStage {
     AttributeKey(ValueStage),
     AttributeValue(ValueStage),
+}
+
+#[derive(Debug, Clone)]
+struct InitEndKeys {
+    open_tag_key: String,
+    closed_tag_key: String,
 }
 
 #[derive(Debug, Clone)]
@@ -73,7 +89,7 @@ enum OpenTagStage {
 #[derive(Debug, Clone)]
 enum ClosedTagStage {
     ForwardSlash,
-    Key,
+    Key(InitEndKeys),
     AngelBracket,
     SibingOrClosing,
 }
@@ -89,13 +105,11 @@ struct NodeStrResult {
     xml_attributes_str: String,
     str_value: String,
     key: String,
-    is_nested: bool,
 }
 
 #[derive(Debug)]
 struct State {
     nodes: Vec<Node>,
-    node_type: Option<NodeType>,
     curr_json: String,
     curr_row_num: i32,
     curr_indent: i32,
@@ -105,7 +119,6 @@ impl State {
     fn new() -> Self {
         Self {
             nodes: Vec::new(),
-            node_type: None,
             curr_json: String::new(),
             curr_row_num: 1,
             curr_indent: 0,
@@ -124,10 +137,23 @@ impl State {
         self.nodes[len].is_nested = is_nested;
     }
 
-    fn update_child_nodes(&mut self, child_node_result: NodeStrResult) {
+    fn update_node_result(&mut self, node_result: NodeStrResult) {
         let len = self.nodes.len() - 1;
-        if self.nodes.len() > 1 {
-            self.nodes[len].child_nodes.push(child_node_result);
+        self.nodes[len].node_result = ChildNodesOrKeyVal::KeyValue(node_result);
+    }
+
+    fn update_node_result_parent(&mut self, node_result: NodeStrResult) {
+        let pos = self.nodes.len() - 2;
+        match self.nodes[pos].node_result.clone() {
+            ChildNodesOrKeyVal::ChildNodes(child_nodes) => {
+                let mut new_child_nodes = child_nodes.clone();
+                new_child_nodes.push(node_result);
+                self.nodes[pos].node_result = ChildNodesOrKeyVal::ChildNodes(new_child_nodes);
+            }
+            ChildNodesOrKeyVal::KeyValue(_) => {
+                let new_child_nodes = vec![node_result];
+                self.nodes[pos].node_result = ChildNodesOrKeyVal::ChildNodes(new_child_nodes);
+            }
         }
     }
 
@@ -136,7 +162,7 @@ impl State {
 
         if self.nodes[len].xml_attributes.len() == 0 {
             self.nodes[len].xml_attributes.push(XmlAttribute {
-                attribute_key: key.clone(),
+                attribute_key: key.to_owned(),
                 attribute_val: String::new(),
             })
         } else {
@@ -169,6 +195,43 @@ impl State {
         tabs_as_str.pop();
 
         format!("\n{}", tabs_as_str)
+    }
+}
+
+fn xml_attribute_stage_key_decision(
+    char_val: &char,
+    state: &mut State,
+    xml_attribute_stage_key: ValueStage,
+) {
+    match xml_attribute_stage_key {
+        ValueStage::Open(str_val) => xml_attribute_key_open(char_val, state, &str_val),
+        ValueStage::Closed => xml_attribute_key_closed(char_val, state),
+    }
+}
+
+fn xml_attribute_stage_val_decision(
+    char_val: &char,
+    state: &mut State,
+    xml_attribute_stage_value: ValueStage,
+) {
+    match xml_attribute_stage_value {
+        ValueStage::Open(str_val) => xml_attribute_value_open(char_val, state, &str_val),
+        ValueStage::Closed => xml_attribute_value_closed(char_val, state, false),
+    }
+}
+
+fn open_tag_stage_attributes_decision(
+    char_val: &char,
+    state: &mut State,
+    open_tag_stage_attributes: XmlAttributeStage,
+) {
+    match open_tag_stage_attributes {
+        XmlAttributeStage::AttributeKey(xml_attribute_stage_key) => {
+            xml_attribute_stage_key_decision(char_val, state, xml_attribute_stage_key)
+        }
+        XmlAttributeStage::AttributeValue(xml_attribute_stage_val) => {
+            xml_attribute_stage_val_decision(char_val, state, xml_attribute_stage_val)
+        }
     }
 }
 
@@ -217,12 +280,9 @@ fn to_if_req_single(char_val: &char, state: &mut State) {
             return;
         }
 
-        if char_val == &'<' {
-            state.nodes.push(Node::new());
-        } else {
+        if char_val != &'<' {
             unexpected_character_error(char_val, state)
         }
-
         return;
     }
 
@@ -232,8 +292,30 @@ fn to_if_req_single(char_val: &char, state: &mut State) {
 
     let node_stage = state.nodes[state.nodes.len() - 1].clone().stage.clone();
     match node_stage {
-        NodeStage::OpenTag(_) => todo!(),
-        NodeStage::ClosedTag(_) => todo!(),
+        NodeStage::OpenTag(open_tag_options) => match open_tag_options {
+            OpenTagStage::Init => open_tag_init(char_val, state),
+            OpenTagStage::Key => open_tag_key_stage_open(char_val, state, false),
+            OpenTagStage::Attributes(open_tag_stage_attributes) => {
+                open_tag_stage_attributes_decision(char_val, state, open_tag_stage_attributes)
+            }
+            OpenTagStage::TagValueCData(curr_val) => {
+                open_tag_stage_cdata_open(char_val, state, &curr_val)
+            }
+            OpenTagStage::TagValue(node_val) => open_tag_value_stage(char_val, state, &node_val),
+            OpenTagStage::AngelBracket => closed_key_is_angle_bracket(char_val, state),
+            OpenTagStage::IsEmptyValue => closed_key_is_empty_value(char_val, state),
+        },
+        NodeStage::ClosedTag(closed_tag_options) => match closed_tag_options {
+            ClosedTagStage::ForwardSlash => closed_tag_value_stage_forward_slash(char_val, state),
+            ClosedTagStage::Key(init_end_keys) => closed_tag_key_stage(
+                char_val,
+                state,
+                &init_end_keys.open_tag_key,
+                &init_end_keys.closed_tag_key,
+            ),
+            ClosedTagStage::AngelBracket => closed_tag_angle_bracket(char_val, state),
+            ClosedTagStage::SibingOrClosing => closed_tag_sibling_or_closing(char_val, state),
+        },
     }
 }
 

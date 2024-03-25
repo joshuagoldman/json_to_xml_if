@@ -95,8 +95,8 @@ fn build_object_json(node: &NodeStrResult, state: &mut State) -> String {
             indent_str, node.key, xml_attributes_str, indent_str
         );
         format!(
-            "{}\"{}\": {{\n{}\n{},\n{}",
-            indent_str, node.key, node.str_value, indent_str, xml_attributes_str_format
+            "{}\"{}\": \n{}\n{},\n{}",
+            indent_str, node.key, indent_str, node.str_value, xml_attributes_str_format
         )
     } else {
         format!(
@@ -106,7 +106,7 @@ fn build_object_json(node: &NodeStrResult, state: &mut State) -> String {
     }
 }
 
-fn build_string_json(node: &NodeStrResult, state: &mut State) -> String {
+fn build_json_simple_val(node: &NodeStrResult, state: &mut State) -> String {
     let indent_str = state.get_indentation_str();
 
     let mut xml_attributes_str = node.xml_attributes_str.clone();
@@ -114,6 +114,14 @@ fn build_string_json(node: &NodeStrResult, state: &mut State) -> String {
     if xml_attributes_str.is_empty() {
         xml_attributes_str = "null".to_string();
     }
+
+    let json_val = match (node.str_value == "null", node.str_value.parse::<i32>()) {
+        (false, Ok(_)) => node.str_value.clone(),
+        (false, Err(_)) => {
+            format!("\"{}\"", node.str_value)
+        }
+        (_, _) => node.str_value.clone(),
+    };
 
     if xml_attributes_str != "null" {
         let xml_attributes_str_format = format!(
@@ -122,70 +130,72 @@ fn build_string_json(node: &NodeStrResult, state: &mut State) -> String {
         );
         format!(
             "{}\"{}\": \"{}\",\n{}{}",
-            indent_str, node.key, node.str_value, indent_str, xml_attributes_str_format
+            indent_str, node.key, json_val, indent_str, xml_attributes_str_format
         )
     } else {
         format!("{}\"{}\": \"{}\"", indent_str, node.key, node.str_value)
     }
 }
 
-fn build_num_json(node: &NodeStrResult, num: &i32, state: &mut State) -> String {
-    let indent_str = state.get_indentation_str();
-
-    let mut xml_attributes_str = node.xml_attributes_str.clone();
-
-    if xml_attributes_str.is_empty() {
-        xml_attributes_str = "null".to_string();
-    }
-
-    if xml_attributes_str != "null" {
-        let xml_attributes_str_format = format!(
-            "{}\"{}_attributes\": {{\n{}\n{}}}",
-            indent_str, node.key, xml_attributes_str, indent_str
-        );
-        format!(
-            "{}\"{}\": {},\n{}{}",
-            indent_str, node.key, num, indent_str, xml_attributes_str_format
-        )
-    } else {
-        format!("{}\"{}\": {}", indent_str, num, node.str_value)
-    }
-}
-
 fn node_to_json(nodes: &Vec<NodeStrResult>, state: &mut State) -> String {
-    const RADIX: u32 = 10;
     match nodes.len() > 1 {
         true => build_array_json(nodes, state),
-        false => {
-            let mut node = nodes[0].clone();
-            if node.str_value.starts_with("<![CDATA[") && node.str_value.ends_with("]]>") {
-                let _ = node.str_value.split_off(node.str_value.len() - 3);
-                node.str_value = node.str_value.split_off(9);
-            }
-            match (node.is_nested, node.str_value.parse::<i32>()) {
-                (true, _) => build_object_json(&node, state),
-                (false, Ok(num)) => build_num_json(&node, &num, state),
-                (false, Err(_)) => build_string_json(&node, state),
-            }
-        }
+        false => build_object_json(&nodes[0], state),
     }
 }
 
-pub fn sibling_close_decision(state: &mut State) {
+pub fn add_key_val_node_result(state: &mut State, str_val: &String) {
+    let len = state.nodes.len() - 1;
+    let last_node = state.nodes[len].clone();
+    let key = match last_node.node_key {
+        Some(some_key) => some_key,
+        None => "unknown".to_string(),
+    };
+    let mut xml_attributes_str = String::new();
+
+    let _ = get_xml_attributes(
+        &key,
+        &last_node.xml_attributes,
+        state,
+        &mut xml_attributes_str,
+    );
+
+    let new_str = if str_val.is_empty() {
+        "null".to_string()
+    } else {
+        str_val.clone()
+    };
+
+    let node_res = NodeStrResult {
+        str_value: new_str,
+        xml_attributes_str,
+        key,
+    };
+
+    state.update_node_result(node_res);
+}
+
+fn child_nodes_or_key_val_handling(state: &mut State) -> String {
+    let len = state.nodes.len() - 1;
+    match state.nodes[len].clone().node_result {
+        super::ChildNodesOrKeyVal::KeyValue(node_res) => build_json_simple_val(&node_res, state),
+        super::ChildNodesOrKeyVal::ChildNodes(child_nodes) => child_nodes
+            .iter()
+            .group_by(|x| x.key.clone())
+            .into_iter()
+            .map(|(_, group)| {
+                let group_as_vec = group.map(|x| x.to_owned()).collect::<Vec<NodeStrResult>>();
+                node_to_json(&group_as_vec, state)
+            })
+            .collect::<Vec<String>>()
+            .join(",\n"),
+    }
+}
+
+pub fn json_construct(state: &mut State) {
     let len = state.nodes.len() - 1;
 
-    let child_nodes_as_str = state.nodes[len]
-        .clone()
-        .child_nodes
-        .iter()
-        .group_by(|x| x.key.clone())
-        .into_iter()
-        .map(|(_, group)| {
-            let group_as_vec = group.map(|x| x.to_owned()).collect::<Vec<NodeStrResult>>();
-            node_to_json(&group_as_vec, state)
-        })
-        .collect::<Vec<String>>()
-        .join(",\n");
+    let child_nodes_as_str = child_nodes_or_key_val_handling(state);
 
     let last_node = state.nodes[len].clone();
     let key = match last_node.node_key {
@@ -201,11 +211,10 @@ pub fn sibling_close_decision(state: &mut State) {
             state,
             &mut xml_attributes_str,
         );
-        state.update_child_nodes(NodeStrResult {
+        state.update_node_result_parent(NodeStrResult {
             str_value: child_nodes_as_str,
             xml_attributes_str,
             key,
-            is_nested: last_node.is_nested,
         });
     } else {
         match state.curr_json.is_empty() {

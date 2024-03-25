@@ -1,36 +1,59 @@
-use iter_tools::Itertools;
-use regex::Regex;
-
 use super::{
-    open_tag::key_update, unexpected_character_error, ClosedTagStage, Node, NodeStage,
-    OpenTagStage, State, XmlAttribute,
+    json_build::json_construct, unexpected_character_error, ClosedTagStage, InitEndKeys, Node,
+    NodeStage, OpenTagStage, State,
 };
 
-pub fn closed_tag_value_stage_forward_slash(char_val: &char, state: &mut State, node_val: &String) {
+fn check_if_node_val_empty(state: &mut State) -> bool {
+    let len = state.nodes.len() - 1;
+
+    match state.nodes[len].node_result.clone() {
+        super::ChildNodesOrKeyVal::KeyValue(node_res) => node_res.str_value == "null",
+        super::ChildNodesOrKeyVal::ChildNodes(_) => false,
+    }
+}
+
+pub fn closed_tag_value_stage_forward_slash(char_val: &char, state: &mut State) {
     match char_val {
-        '/' => {
-            state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::Key));
+        '>' => {
+            if check_if_node_val_empty(state) {
+                state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::AngelBracket));
+            } else {
+                unexpected_character_error(char_val, state)
+            }
         }
         _ => {
-            state.nodes.push(Node::new());
-
-            state.update_node_stage(NodeStage::OpenTag(OpenTagStage::Key));
-            key_update(state, char_val);
+            let last_node = state.nodes[state.nodes.len() - 1].clone();
+            match last_node.node_key {
+                Some(some_open_tag_key) => state.update_node_stage(NodeStage::ClosedTag(
+                    ClosedTagStage::Key(InitEndKeys {
+                        open_tag_key: some_open_tag_key,
+                        closed_tag_key: String::new(),
+                    }),
+                )),
+                None => panic!("No open tag was found!"),
+            }
         }
     }
 }
 
-pub fn closed_tag_key_stage(char_val: &char, state: &mut State) {
-    let regex = Regex::new(r"^[aA-zZ]").unwrap();
+pub fn closed_tag_key_stage(
+    char_val: &char,
+    state: &mut State,
+    open_tag_key: &String,
+    close_tag_key: &String,
+) {
     match char_val {
         '>' => {
-            state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::AngelBracket));
+            if open_tag_key == close_tag_key {
+                state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::AngelBracket));
+            }
         }
         _ => {
-            let new_key = key_update(state, char_val);
-            if let None = regex.captures(new_key.as_str()) {
-                panic!("unexpected tag key name at row {}", state.curr_row_num)
-            }
+            let new_key = format!("{}{}", close_tag_key, char_val);
+            state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::Key(InitEndKeys {
+                open_tag_key: open_tag_key.to_owned(),
+                closed_tag_key: new_key,
+            })))
         }
     }
 }
@@ -49,11 +72,25 @@ pub fn closed_tag_sibling_or_closing(char_val: &char, state: &mut State) {
         '/' => {
             state.nodes.pop();
             state.curr_indent -= 1;
-            state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::Key));
+            let last_node = state.nodes[state.nodes.len() - 1].clone();
+            match last_node.node_key {
+                Some(some_open_tag_key) => {
+                    state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::Key(
+                        InitEndKeys {
+                            open_tag_key: some_open_tag_key,
+                            closed_tag_key: String::new(),
+                        },
+                    )));
+                }
+                None => panic!("No open tag was found!"),
+            }
         }
         _ => {
+            json_construct(state);
             state.nodes.pop();
-            state.nodes.push(Node::new());
+            let mut node = Node::new();
+            node.node_key = Some(char_val.to_string());
+            state.nodes.push(node);
             state.update_node_stage(NodeStage::OpenTag(OpenTagStage::Key));
         }
     }

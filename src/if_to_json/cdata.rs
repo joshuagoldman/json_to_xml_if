@@ -1,15 +1,10 @@
-use regex::Regex;
-
-use super::{
-    unexpected_character_error, ClosedTagStage, KeyStage, Node, NodeStage, NodeType, OpenTagStage,
-    State, ValueStage, XmlAttributeStage,
-};
+use super::{ClosedTagStage, NodeStage, OpenTagStage, State};
 
 pub fn open_tag_stage_cdata_open(char_val: &char, state: &mut State, curr_val: &String) {
-    let mut new_string_val = format!("{}{}", curr_val, char_val);
+    let new_string_val = format!("{}{}", curr_val, char_val);
     match char_val {
         '<' => {
-            if new_string_val.ends_with("]]>") {
+            if new_string_val.ends_with("]]>") && new_string_val.starts_with("<![CDATA[") {
                 state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::ForwardSlash));
                 state.update_is_nested(false);
             } else {
@@ -18,17 +13,16 @@ pub fn open_tag_stage_cdata_open(char_val: &char, state: &mut State, curr_val: &
                 )))
             }
         }
-        _ => state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValueCData(
-            new_string_val,
-        ))),
-    }
-}
-
-pub fn open_tag_stage_cdata_closed(char_val: &char, state: &mut State) {
-    match char_val {
-        '/' => {
-            state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::Key));
+        _ => {
+            if "<![CDATA[".contains(new_string_val.as_str())
+                | new_string_val.starts_with("<![CDATA[")
+            {
+                state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValueCData(
+                    new_string_val,
+                )))
+            } else {
+                state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValue(new_string_val)))
+            }
         }
-        _ => unexpected_character_error(char_val, state),
     }
 }

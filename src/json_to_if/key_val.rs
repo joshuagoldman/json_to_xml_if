@@ -175,6 +175,7 @@ pub fn key_val_json_null_case_closed(char_val: &char, state: &mut State) {
             state.update_to_item_separate_state();
         }
         '}' => {
+            add_close_tag(state, true);
             state.fields.pop();
             state.update_to_closed_state();
         }
