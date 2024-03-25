@@ -1,4 +1,4 @@
-use super::{ClosedTagStage, NodeStage, OpenTagStage, State};
+use super::{json_build::add_key_val_node_result, ClosedTagStage, NodeStage, OpenTagStage, State};
 
 pub fn open_tag_stage_cdata_open(char_val: &char, state: &mut State, curr_val: &String) {
     let new_string_val = format!("{}{}", curr_val, char_val);
@@ -6,7 +6,7 @@ pub fn open_tag_stage_cdata_open(char_val: &char, state: &mut State, curr_val: &
         '<' => {
             if new_string_val.ends_with("]]>") && new_string_val.starts_with("<![CDATA[") {
                 state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::ForwardSlash));
-                state.update_is_nested(false);
+                add_key_val_node_result(state, &curr_val);
             } else {
                 state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValueCData(
                     new_string_val,

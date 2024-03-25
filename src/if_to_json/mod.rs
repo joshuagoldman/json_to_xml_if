@@ -5,8 +5,8 @@ use self::{
         closed_tag_value_stage_forward_slash,
     },
     open_tag::{
-        closed_key_is_angle_bracket, closed_key_is_empty_value, open_tag_init,
-        open_tag_key_stage_open, open_tag_value_stage,
+        closed_key_is_angle_bracket, closed_key_is_empty_value, open_tag_key_stage_open,
+        open_tag_value_stage,
     },
     xml_attribute::{
         xml_attribute_key_closed, xml_attribute_key_open, xml_attribute_value_closed,
@@ -37,7 +37,7 @@ impl Node {
                 str_value: String::new(),
                 key: String::new(),
             }),
-            stage: NodeStage::OpenTag(OpenTagStage::Init),
+            stage: NodeStage::OpenTag(OpenTagStage::Key),
             xml_attributes: Vec::new(),
             node_key: None,
             is_nested: false,
@@ -77,7 +77,6 @@ struct InitEndKeys {
 
 #[derive(Debug, Clone)]
 enum OpenTagStage {
-    Init,
     Key,
     Attributes(XmlAttributeStage),
     TagValueCData(String),
@@ -129,12 +128,6 @@ impl State {
         let len = self.nodes.len() - 1;
 
         self.nodes[len].stage = node_stage;
-    }
-
-    fn update_is_nested(&mut self, is_nested: bool) {
-        let len = self.nodes.len() - 1;
-
-        self.nodes[len].is_nested = is_nested;
     }
 
     fn update_node_result(&mut self, node_result: NodeStrResult) {
@@ -293,7 +286,6 @@ fn to_if_req_single(char_val: &char, state: &mut State) {
     let node_stage = state.nodes[state.nodes.len() - 1].clone().stage.clone();
     match node_stage {
         NodeStage::OpenTag(open_tag_options) => match open_tag_options {
-            OpenTagStage::Init => open_tag_init(char_val, state),
             OpenTagStage::Key => open_tag_key_stage_open(char_val, state, false),
             OpenTagStage::Attributes(open_tag_stage_attributes) => {
                 open_tag_stage_attributes_decision(char_val, state, open_tag_stage_attributes)
