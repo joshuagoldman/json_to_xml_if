@@ -35,6 +35,7 @@ impl Node {
                 xml_attributes_str: String::new(),
                 str_value: String::new(),
                 key: String::new(),
+                is_object: true,
             }),
             stage: NodeStage::OpenTag(OpenTagStage::Key),
             xml_attributes: Vec::new(),
@@ -103,6 +104,7 @@ pub struct NodeStrResult {
     pub xml_attributes_str: String,
     pub str_value: String,
     pub key: String,
+    pub is_object: bool,
 }
 
 #[derive(Debug)]
@@ -178,7 +180,6 @@ impl State {
         for _ in 0..self.curr_indent {
             tabs_as_str.push(' ');
         }
-        tabs_as_str.pop();
 
         tabs_as_str
     }

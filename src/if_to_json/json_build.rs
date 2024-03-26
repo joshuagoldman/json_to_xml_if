@@ -36,6 +36,7 @@ pub fn get_xml_attributes(
 
 pub fn build_array_json(nodes: &Vec<NodeStrResult>, state: &mut State) -> String {
     let indent_str = state.get_indentation_str();
+    let indent_str_inner = format!("{} ", indent_str);
     let key = nodes[0].key.clone();
 
     let array_components = nodes
@@ -60,22 +61,22 @@ pub fn build_array_json(nodes: &Vec<NodeStrResult>, state: &mut State) -> String
     if !all_attr_null {
         let xml_attributes_str_format = format!(
             "{}\"{}_attributes\": [\n{}\n{}]",
-            indent_str, key, xml_attributes_str, indent_str
+            indent_str_inner, key, xml_attributes_str, indent_str_inner
         );
         format!(
             "{}\"{}\": [\n{}\n{}],\n{}",
-            indent_str, key, array_components, indent_str, xml_attributes_str_format
+            indent_str_inner, key, array_components, indent_str_inner, xml_attributes_str_format
         )
     } else {
         format!(
             "{}\"{}\": [\n{}\n{}]",
-            indent_str, key, array_components, indent_str
+            indent_str_inner, key, array_components, indent_str_inner
         )
     }
 }
 
 pub fn build_object_json(node: &NodeStrResult, state: &mut State) -> String {
-    let indent_str = state.get_indentation_str();
+    let indent_str = format!("{} ", state.get_indentation_str());
 
     let mut xml_attributes_str = node.xml_attributes_str.clone();
 
@@ -88,6 +89,8 @@ pub fn build_object_json(node: &NodeStrResult, state: &mut State) -> String {
     let mut xml_attributes_str_new = xml_attributes_str.trim_start().trim_end().to_string();
     xml_attributes_str_new.remove(xml_attributes_str_new.len() - 3);
 
+    let str_value_new = node.str_value.trim_start().to_string();
+
     if xml_attributes_str != "null" {
         let xml_attributes_str_format = format!(
             "{}\"{}_attributes\": {}",
@@ -95,10 +98,10 @@ pub fn build_object_json(node: &NodeStrResult, state: &mut State) -> String {
         );
         format!(
             "{}\"{}\": {},\n{}",
-            indent_str, node.key, new_node, xml_attributes_str_format
+            indent_str, node.key, str_value_new, xml_attributes_str_format
         )
     } else {
-        format!("{}\"{}\": \n{}", indent_str, node.key, node.str_value)
+        format!("{}\"{}\": {}", indent_str, node.key, str_value_new)
     }
 }
 
@@ -123,15 +126,17 @@ pub fn add_key_val_node_result(state: &mut State, str_val: &String) {
     let new_str = if str_val.is_empty() {
         "null".to_string()
     } else if let Ok(_) = str_val.parse::<i32>() {
-        str_val.clone()
+        format!("{}", str_val.clone())
     } else {
         format!("\"{}\"", str_val.clone())
     };
 
+    let new_str_indented = format!("{}  {}", state.get_indentation_str(), new_str);
     let node_res = NodeStrResult {
-        str_value: new_str,
+        str_value: new_str_indented,
         xml_attributes_str,
         key,
+        is_object: false,
     };
 
     state.update_node_key_val(node_res);
@@ -160,12 +165,13 @@ fn child_nodes_or_key_val_handling(state: &mut State) -> NodeStrResult {
                 .collect::<Vec<String>>()
                 .join(",\n");
 
-            let indent_str = format!("{} ", state.get_indentation_str());
-            let final_node_str = format!("{{\n{}\n{}}}", chilren_as_str, indent_str);
+            let indent_str = format!(" {}", state.get_indentation_str());
+            let final_node_str = format!("{}{{\n{}\n{}}}", indent_str, chilren_as_str, indent_str);
             NodeStrResult {
                 str_value: final_node_str.clone(),
                 xml_attributes_str,
                 key,
+                is_object: true,
             }
         }
     }
@@ -180,5 +186,5 @@ pub fn json_construct(state: &mut State) {
 
 pub fn construct_last(state: &mut State) {
     let node = child_nodes_or_key_val_handling(state);
-    state.str_json = Some(build_object_json(&node, state));
+    state.str_json = Some(build_object_json(&node, state).trim_start().to_string());
 }

@@ -81,11 +81,13 @@ mod tests {
                 str_value: json_nested.trim_end().to_string().clone(),
                 xml_attributes_str: attr_str.clone(),
                 key: key.clone(),
+                is_object: true,
             },
             NodeStrResult {
                 str_value: json_nested.to_string().trim_end().to_string().clone(),
                 xml_attributes_str: "  null".to_string(),
                 key: key.clone(),
+                is_object: true,
             },
         ];
 

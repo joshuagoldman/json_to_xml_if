@@ -81,10 +81,10 @@ pub fn closed_tag_sibling_or_closing(char_val: &char, state: &mut State) {
     json_construct(state);
     match char_val {
         '/' => {
+            state.curr_indent -= 1;
             if state.nodes.len() == 1 {
                 construct_last(state);
             } else {
-                state.curr_indent -= 1;
                 let last_node = state.nodes[state.nodes.len() - 1].clone();
                 match last_node.node_key {
                     Some(some_open_tag_key) => {
