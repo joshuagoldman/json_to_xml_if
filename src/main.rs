@@ -43,7 +43,7 @@ mod tests {
                 file.write_all(ok_res.as_bytes()).unwrap();
                 assert!(true)
             }
-            Err(_) => assert!(false),
+            Err(err_msg) => assert!(false, "{}", err_msg),
         }
     }
 

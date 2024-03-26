@@ -22,7 +22,7 @@ mod xml_attribute;
 
 #[derive(Clone, Debug)]
 pub struct Node {
-    pub node_result: ChildNodesOrKeyVal,
+    pub child_node_result: ChildNodesOrKeyVal,
     pub node_key: Option<String>,
     pub xml_attributes: Vec<XmlAttribute>,
     pub stage: NodeStage,
@@ -31,7 +31,7 @@ pub struct Node {
 impl Node {
     pub fn new() -> Self {
         Self {
-            node_result: ChildNodesOrKeyVal::KeyValue(NodeStrResult {
+            child_node_result: ChildNodesOrKeyVal::KeyValue(NodeStrResult {
                 xml_attributes_str: String::new(),
                 str_value: String::new(),
                 key: String::new(),
@@ -108,18 +108,18 @@ pub struct NodeStrResult {
 #[derive(Debug)]
 pub struct State {
     pub nodes: Vec<Node>,
-    pub curr_json: String,
     pub curr_row_num: i32,
     pub curr_indent: i32,
+    pub str_json: Option<String>,
 }
 
 impl State {
     pub fn new() -> Self {
         Self {
             nodes: Vec::new(),
-            curr_json: String::new(),
             curr_row_num: 1,
             curr_indent: 0,
+            str_json: None,
         }
     }
 
@@ -127,25 +127,24 @@ impl State {
         let len = self.nodes.len() - 1;
 
         self.nodes[len].stage = node_stage.clone();
-        //println!("{:#?}", node_stage);
     }
 
-    fn update_node_result(&mut self, node_result: NodeStrResult) {
+    fn update_node_key_val(&mut self, node_result: NodeStrResult) {
         let len = self.nodes.len() - 1;
-        self.nodes[len].node_result = ChildNodesOrKeyVal::KeyValue(node_result);
+        self.nodes[len].child_node_result = ChildNodesOrKeyVal::KeyValue(node_result);
     }
 
     fn update_node_result_parent(&mut self, node_result: NodeStrResult) {
         let pos = self.nodes.len() - 2;
-        match self.nodes[pos].node_result.clone() {
+        match self.nodes[pos].child_node_result.clone() {
             ChildNodesOrKeyVal::ChildNodes(child_nodes) => {
                 let mut new_child_nodes = child_nodes.clone();
                 new_child_nodes.push(node_result);
-                self.nodes[pos].node_result = ChildNodesOrKeyVal::ChildNodes(new_child_nodes);
+                self.nodes[pos].child_node_result = ChildNodesOrKeyVal::ChildNodes(new_child_nodes);
             }
             ChildNodesOrKeyVal::KeyValue(_) => {
                 let new_child_nodes = vec![node_result];
-                self.nodes[pos].node_result = ChildNodesOrKeyVal::ChildNodes(new_child_nodes);
+                self.nodes[pos].child_node_result = ChildNodesOrKeyVal::ChildNodes(new_child_nodes);
             }
         }
     }
@@ -184,9 +183,9 @@ impl State {
         tabs_as_str
     }
 
-    fn print(&mut self) {
-        print!("{:#?}", self);
-    }
+    // fn print(&mut self) {
+    //     print!("{:#?}", self);
+    // }
 }
 
 fn xml_attribute_stage_key_decision(
@@ -295,7 +294,7 @@ fn to_if_req_single(char_val: &char, state: &mut State) {
         NodeStage::OpenTag(open_tag_options) => match open_tag_options {
             OpenTagStage::Key => open_tag_key_stage_open(char_val, state, false),
             OpenTagStage::Attributes(open_tag_stage_attributes) => {
-                // print!("{:#?}", node_stage);
+                //print!("{:#?}", node_stage);
                 open_tag_stage_attributes_decision(char_val, state, open_tag_stage_attributes)
             }
             OpenTagStage::TagValueCData(curr_val) => {
@@ -325,7 +324,12 @@ pub fn if_to_json(xml_str: &String) -> Result<String, String> {
     for (_, char_val) in xml_str.chars().enumerate() {
         to_if_req_single(&char_val, &mut state);
     }
-    panic!("nope");
+    //panic!("{:#?}", state);
+    //panic!("nope");
 
-    Result::Ok(state.curr_json)
+    if let Some(res_json) = state.str_json {
+        Result::Ok(res_json)
+    } else {
+        Result::Err("Not enough data to construct a json".to_string())
+    }
 }

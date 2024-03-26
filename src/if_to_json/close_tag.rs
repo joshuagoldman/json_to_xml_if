@@ -1,6 +1,6 @@
 use super::{
-    json_build::json_construct, unexpected_character_error, ClosedTagStage, InitEndKeys, Node,
-    NodeStage, OpenTagStage, State,
+    json_build::{construct_last, json_construct},
+    unexpected_character_error, ClosedTagStage, InitEndKeys, Node, NodeStage, OpenTagStage, State,
 };
 
 pub fn closed_tag_opening(char_val: &char, state: &mut State) {
@@ -78,26 +78,28 @@ pub fn closed_tag_angle_bracket(char_val: &char, state: &mut State) {
 }
 
 pub fn closed_tag_sibling_or_closing(char_val: &char, state: &mut State) {
+    json_construct(state);
     match char_val {
         '/' => {
-            state.nodes.pop();
-            state.curr_indent -= 1;
-            let last_node = state.nodes[state.nodes.len() - 1].clone();
-            match last_node.node_key {
-                Some(some_open_tag_key) => {
-                    state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::Key(
-                        InitEndKeys {
-                            open_tag_key: some_open_tag_key,
-                            closed_tag_key: String::new(),
-                        },
-                    )));
+            if state.nodes.len() == 1 {
+                construct_last(state);
+            } else {
+                state.curr_indent -= 1;
+                let last_node = state.nodes[state.nodes.len() - 1].clone();
+                match last_node.node_key {
+                    Some(some_open_tag_key) => {
+                        state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::Key(
+                            InitEndKeys {
+                                open_tag_key: some_open_tag_key,
+                                closed_tag_key: String::new(),
+                            },
+                        )));
+                    }
+                    None => panic!("No open tag was found!"),
                 }
-                None => panic!("No open tag was found!"),
             }
         }
         _ => {
-            json_construct(state);
-            state.nodes.pop();
             let mut node = Node::new();
             node.node_key = Some(char_val.to_string());
             state.nodes.push(node);

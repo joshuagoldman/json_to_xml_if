@@ -23,7 +23,7 @@ pub fn xml_attribute_key_open(char_val: &char, state: &mut State, curr_xml_attr_
                 unexpected_character_error(char_val, state)
             }
 
-            state.update_node_stage(NodeStage::OpenTag(OpenTagStage::Key))
+            state.update_node_stage(NodeStage::OpenTag(OpenTagStage::AngelBracket))
         }
         '/' => {
             if !curr_xml_attr_key.is_empty() {
