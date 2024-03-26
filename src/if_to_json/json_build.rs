@@ -1,33 +1,33 @@
+use std::fmt::format;
+
 use iter_tools::Itertools;
 
 use super::{NodeStrResult, State, XmlAttribute};
 
-fn get_xml_attributes(
-    key: &String,
+pub fn get_xml_attributes(
     attributes: &Vec<XmlAttribute>,
     state: &mut State,
     attr_str: &mut String,
 ) -> bool {
-    let indent_str = state.get_indentation_str();
+    let indent_str_inner = format!("{} ", state.get_indentation_str());
+    let indent_str_inner_array = format!("{} ", indent_str_inner.clone());
     if attributes.len() > 0 {
         let attribute_chunks = attributes
             .iter()
             .map(|attr| {
                 format!(
-                    "{}{{\n{}\"{}\": \"{}\",\n{}}}",
-                    indent_str,
-                    indent_str,
+                    "{}\"{}\": \"{}\"",
+                    indent_str_inner_array,
                     attr.attribute_key.clone(),
                     attr.attribute_val.clone(),
-                    indent_str
                 )
             })
             .collect::<Vec<String>>()
             .join(",\n");
 
         *attr_str = format!(
-            "{}\"{}\": [\n{}{}\n{}]",
-            indent_str, key, indent_str, attribute_chunks, indent_str
+            "{}{{\n{}\n{}}}",
+            indent_str_inner, attribute_chunks, indent_str_inner
         );
 
         true
@@ -36,7 +36,7 @@ fn get_xml_attributes(
     }
 }
 
-fn build_array_json(nodes: &Vec<NodeStrResult>, state: &mut State) -> String {
+pub fn build_array_json(nodes: &Vec<NodeStrResult>, state: &mut State) -> String {
     let indent_str = state.get_indentation_str();
     let key = nodes[0].key.clone();
 
@@ -56,11 +56,7 @@ fn build_array_json(nodes: &Vec<NodeStrResult>, state: &mut State) -> String {
         })
         .collect::<Vec<String>>();
 
-    let xml_attributes_str = xml_attributes
-        .iter()
-        .map(|x| format!("{}{{\n{}{}\n{}}}", indent_str, indent_str, x, indent_str))
-        .collect::<Vec<String>>()
-        .join(",\n");
+    let xml_attributes_str = xml_attributes.join(",\n");
 
     let all_attr_null = xml_attributes.iter().all(|x| x == &"null");
     if !all_attr_null {
@@ -80,7 +76,7 @@ fn build_array_json(nodes: &Vec<NodeStrResult>, state: &mut State) -> String {
     }
 }
 
-fn build_object_json(node: &NodeStrResult, state: &mut State) -> String {
+pub fn build_object_json(node: &NodeStrResult, state: &mut State) -> String {
     let indent_str = state.get_indentation_str();
 
     let mut xml_attributes_str = node.xml_attributes_str.clone();
@@ -89,20 +85,21 @@ fn build_object_json(node: &NodeStrResult, state: &mut State) -> String {
         xml_attributes_str = "null".to_string();
     }
 
+    let mut new_node = node.str_value.trim_start().trim_end().to_string();
+    new_node.remove(new_node.len() - 3);
+    let mut xml_attributes_str_new = xml_attributes_str.trim_start().trim_end().to_string();
+    xml_attributes_str_new.remove(xml_attributes_str_new.len() - 3);
     if xml_attributes_str != "null" {
         let xml_attributes_str_format = format!(
-            "{}\"{}_attributes\": {{\n{}\n{}}}",
-            indent_str, node.key, xml_attributes_str, indent_str
+            "{}\"{}_attributes\": {}",
+            indent_str, node.key, xml_attributes_str_new
         );
         format!(
-            "{}\"{}\": \n{}\n{},\n{}",
-            indent_str, node.key, indent_str, node.str_value, xml_attributes_str_format
+            "{}\"{}\": {},\n{}",
+            indent_str, node.key, new_node, xml_attributes_str_format
         )
     } else {
-        format!(
-            "{}\"{}\": [\n{}\n{}]",
-            indent_str, node.key, node.str_value, indent_str
-        )
+        format!("{}\"{}\": \n{}", indent_str, node.key, node.str_value)
     }
 }
 
@@ -125,15 +122,15 @@ fn build_json_simple_val(node: &NodeStrResult, state: &mut State) -> String {
 
     if xml_attributes_str != "null" {
         let xml_attributes_str_format = format!(
-            "{}\"{}_attributes\": {{\n{}\n{}}}",
-            indent_str, node.key, xml_attributes_str, indent_str
+            "{}\"{}_attributes\": {}",
+            indent_str, node.key, xml_attributes_str
         );
         format!(
-            "{}\"{}\": \"{}\",\n{}{}",
+            "{}\"{}\": {},\n{}{}",
             indent_str, node.key, json_val, indent_str, xml_attributes_str_format
         )
     } else {
-        format!("{}\"{}\": \"{}\"", indent_str, node.key, node.str_value)
+        format!("{}\"{}\": {}", indent_str, node.key, node.str_value)
     }
 }
 
@@ -153,12 +150,7 @@ pub fn add_key_val_node_result(state: &mut State, str_val: &String) {
     };
     let mut xml_attributes_str = String::new();
 
-    let _ = get_xml_attributes(
-        &key,
-        &last_node.xml_attributes,
-        state,
-        &mut xml_attributes_str,
-    );
+    let _ = get_xml_attributes(&last_node.xml_attributes, state, &mut xml_attributes_str);
 
     let new_str = if str_val.is_empty() {
         "null".to_string()
@@ -195,7 +187,7 @@ fn child_nodes_or_key_val_handling(state: &mut State) -> String {
 pub fn json_construct(state: &mut State) {
     let len = state.nodes.len() - 1;
 
-    let child_nodes_as_str = child_nodes_or_key_val_handling(state);
+    let final_node_str = child_nodes_or_key_val_handling(state);
 
     let last_node = state.nodes[len].clone();
     let key = match last_node.node_key {
@@ -205,23 +197,16 @@ pub fn json_construct(state: &mut State) {
 
     if state.nodes.len() > 1 {
         let mut xml_attributes_str = String::new();
-        get_xml_attributes(
-            &key,
-            &last_node.xml_attributes,
-            state,
-            &mut xml_attributes_str,
-        );
+        get_xml_attributes(&last_node.xml_attributes, state, &mut xml_attributes_str);
         state.update_node_result_parent(NodeStrResult {
-            str_value: child_nodes_as_str,
+            str_value: final_node_str,
             xml_attributes_str,
             key,
         });
     } else {
         match state.curr_json.is_empty() {
-            true => state.curr_json = format!("{{\n{}\n}}", child_nodes_as_str),
-            false => {
-                state.curr_json = format!("{},\n{{\n{}\n}}", state.curr_json, child_nodes_as_str)
-            }
+            true => state.curr_json = format!("{{\n{}\n}}", final_node_str),
+            false => state.curr_json = format!("{},\n{{\n{}\n}}", state.curr_json, final_node_str),
         }
     }
 }

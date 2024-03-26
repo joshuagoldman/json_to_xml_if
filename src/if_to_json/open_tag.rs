@@ -20,15 +20,6 @@ pub fn key_update(state: &mut State, char_val: &char) -> String {
     }
 }
 
-//pub fn open_tag_init(char_val: &char, state: &mut State) {
-//    let regex = Regex::new(r"^[aA-zZ]").unwrap();
-//    if let None = regex.captures(char_val.to_string().as_str()) {
-//        panic!("unexpected tag key name at row {}", state.curr_row_num)
-//    }
-//    let _ = key_update(state, char_val);
-//   state.update_node_stage(NodeStage::OpenTag(OpenTagStage::Key));
-//}
-
 pub fn open_tag_key_stage_open(char_val: &char, state: &mut State, is_white_space: bool) {
     let regex = Regex::new(r"^[aA-zZ]").unwrap();
     if is_white_space {
@@ -108,7 +99,7 @@ pub fn open_tag_value_stage(char_val: &char, state: &mut State, node_val: &Strin
         state.update_node_stage(NodeStage::OpenTag(OpenTagStage::Key));
     } else if char_val == &'<' {
         add_key_val_node_result(state, &node_val);
-        state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::ForwardSlash));
+        state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::ClosedTagOpening));
     } else {
         state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValue(new_string_val)));
     }

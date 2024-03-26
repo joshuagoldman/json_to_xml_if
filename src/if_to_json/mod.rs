@@ -1,8 +1,8 @@
 use self::{
     cdata::open_tag_stage_cdata_open,
     close_tag::{
-        closed_tag_angle_bracket, closed_tag_key_stage, closed_tag_sibling_or_closing,
-        closed_tag_value_stage_forward_slash,
+        closed_tag_angle_bracket, closed_tag_key_stage, closed_tag_opening,
+        closed_tag_sibling_or_closing, closed_tag_value_stage_forward_slash,
     },
     open_tag::{
         closed_key_is_angle_bracket, closed_key_is_empty_value, open_tag_key_stage_open,
@@ -16,21 +16,20 @@ use self::{
 
 mod cdata;
 mod close_tag;
-mod json_build;
+pub mod json_build;
 mod open_tag;
 mod xml_attribute;
 
 #[derive(Clone, Debug)]
-struct Node {
-    node_result: ChildNodesOrKeyVal,
-    node_key: Option<String>,
-    xml_attributes: Vec<XmlAttribute>,
-    stage: NodeStage,
-    is_nested: bool,
+pub struct Node {
+    pub node_result: ChildNodesOrKeyVal,
+    pub node_key: Option<String>,
+    pub xml_attributes: Vec<XmlAttribute>,
+    pub stage: NodeStage,
 }
 
 impl Node {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             node_result: ChildNodesOrKeyVal::KeyValue(NodeStrResult {
                 xml_attributes_str: String::new(),
@@ -40,43 +39,42 @@ impl Node {
             stage: NodeStage::OpenTag(OpenTagStage::Key),
             xml_attributes: Vec::new(),
             node_key: None,
-            is_nested: false,
         }
     }
 }
 
 #[derive(Debug, Clone)]
-enum ChildNodesOrKeyVal {
+pub enum ChildNodesOrKeyVal {
     KeyValue(NodeStrResult),
     ChildNodes(Vec<NodeStrResult>),
 }
 
 #[derive(Debug, Clone)]
-struct XmlAttribute {
-    attribute_key: String,
-    attribute_val: String,
+pub struct XmlAttribute {
+    pub attribute_key: String,
+    pub attribute_val: String,
 }
 
 #[derive(Debug, Clone)]
-enum ValueStage {
+pub enum ValueStage {
     Open(String),
     Closed,
 }
 
 #[derive(Debug, Clone)]
-enum XmlAttributeStage {
+pub enum XmlAttributeStage {
     AttributeKey(ValueStage),
     AttributeValue(ValueStage),
 }
 
 #[derive(Debug, Clone)]
-struct InitEndKeys {
+pub struct InitEndKeys {
     open_tag_key: String,
     closed_tag_key: String,
 }
 
 #[derive(Debug, Clone)]
-enum OpenTagStage {
+pub enum OpenTagStage {
     Key,
     Attributes(XmlAttributeStage),
     TagValueCData(String),
@@ -86,7 +84,8 @@ enum OpenTagStage {
 }
 
 #[derive(Debug, Clone)]
-enum ClosedTagStage {
+pub enum ClosedTagStage {
+    ClosedTagOpening,
     ForwardSlash,
     Key(InitEndKeys),
     AngelBracket,
@@ -94,28 +93,28 @@ enum ClosedTagStage {
 }
 
 #[derive(Debug, Clone)]
-enum NodeStage {
+pub enum NodeStage {
     OpenTag(OpenTagStage),
     ClosedTag(ClosedTagStage),
 }
 
 #[derive(Debug, Clone)]
-struct NodeStrResult {
-    xml_attributes_str: String,
-    str_value: String,
-    key: String,
+pub struct NodeStrResult {
+    pub xml_attributes_str: String,
+    pub str_value: String,
+    pub key: String,
 }
 
 #[derive(Debug)]
-struct State {
-    nodes: Vec<Node>,
-    curr_json: String,
-    curr_row_num: i32,
-    curr_indent: i32,
+pub struct State {
+    pub nodes: Vec<Node>,
+    pub curr_json: String,
+    pub curr_row_num: i32,
+    pub curr_indent: i32,
 }
 
 impl State {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             nodes: Vec::new(),
             curr_json: String::new(),
@@ -187,7 +186,7 @@ impl State {
         }
         tabs_as_str.pop();
 
-        format!("\n{}", tabs_as_str)
+        tabs_as_str
     }
 }
 
@@ -236,19 +235,20 @@ fn unexpected_character_error(char_val: &char, state: &State) {
     )
 }
 
-fn e_det_tomt_varde_for_i_helvete_javla_fittsugarkuk(char_val: &char) -> bool {
-    vec![' ', '\t', '\r'].iter().any(|x| x == char_val)
+fn is_white_space(char_val: &char) -> bool {
+    vec![' ', '\n', '\t', '\r'].iter().any(|x| x == char_val)
 }
 
 fn should_not_ignore_white_space(char_val: &char, state: &mut State) -> bool {
-    if !e_det_tomt_varde_for_i_helvete_javla_fittsugarkuk(char_val) {
+    if !is_white_space(char_val) {
         return false;
     }
+    if let None = state.nodes[state.nodes.len() - 1].node_key {
+        return false;
+    }
+
     match state.nodes[state.nodes.len() - 1].stage.clone() {
         NodeStage::OpenTag(OpenTagStage::Key) => {
-            if let None = state.nodes[state.nodes.len() - 1].node_key {
-                return false;
-            }
             open_tag_key_stage_open(char_val, state, true);
             true
         }
@@ -265,11 +265,10 @@ fn should_not_ignore_white_space(char_val: &char, state: &mut State) -> bool {
 fn to_if_req_single(char_val: &char, state: &mut State) {
     if vec!['\n'].iter().any(|x| x == char_val) {
         state.curr_row_num += 1;
-        return;
     }
 
     if state.nodes.len() == 0 {
-        if e_det_tomt_varde_for_i_helvete_javla_fittsugarkuk(char_val) {
+        if is_white_space(char_val) {
             return;
         }
 
@@ -298,6 +297,7 @@ fn to_if_req_single(char_val: &char, state: &mut State) {
             OpenTagStage::IsEmptyValue => closed_key_is_empty_value(char_val, state),
         },
         NodeStage::ClosedTag(closed_tag_options) => match closed_tag_options {
+            ClosedTagStage::ClosedTagOpening => closed_tag_opening(char_val, state),
             ClosedTagStage::ForwardSlash => closed_tag_value_stage_forward_slash(char_val, state),
             ClosedTagStage::Key(init_end_keys) => closed_tag_key_stage(
                 char_val,

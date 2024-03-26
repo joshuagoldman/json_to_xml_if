@@ -48,7 +48,6 @@ pub fn xml_attribute_key_closed(char_val: &char, state: &mut State) {
 }
 
 pub fn xml_attribute_value_open(char_val: &char, state: &mut State, curr_xml_attr_val: &String) {
-    let regex = Regex::new(r"^[aA-zZ]").unwrap();
     let new_key = format!("{}{}", curr_xml_attr_val, char_val);
     match char_val {
         '"' => {
@@ -58,13 +57,6 @@ pub fn xml_attribute_value_open(char_val: &char, state: &mut State, curr_xml_att
             state.update_attribute_val(curr_xml_attr_val);
         }
         _ => {
-            if let None = regex.captures(new_key.as_str()) {
-                panic!(
-                    "unexpected attribute key value at row {}",
-                    state.curr_row_num
-                )
-            }
-
             state.update_node_stage(NodeStage::OpenTag(OpenTagStage::Attributes(
                 XmlAttributeStage::AttributeKey(ValueStage::Open(new_key)),
             )));
