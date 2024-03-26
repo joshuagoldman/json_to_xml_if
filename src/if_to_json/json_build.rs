@@ -34,6 +34,13 @@ pub fn get_xml_attributes(
     }
 }
 
+fn increase_curly_braces_indent_for_array(node: &NodeStrResult) -> String {
+    let mut str_val = node.str_value.clone();
+    str_val = str_val.replacen("{", "  {", 1);
+    str_val = str_val.replace("\n", "\n ");
+    str_val
+}
+
 pub fn build_array_json(nodes: &Vec<NodeStrResult>, state: &mut State) -> String {
     let indent_str = state.get_indentation_str();
     let indent_str_inner = format!("{} ", indent_str);
@@ -41,7 +48,10 @@ pub fn build_array_json(nodes: &Vec<NodeStrResult>, state: &mut State) -> String
 
     let array_components = nodes
         .iter()
-        .map(|x| x.str_value.clone())
+        .map(|x| match x.is_object {
+            true => increase_curly_braces_indent_for_array(x),
+            false => x.str_value.clone(),
+        })
         .collect::<Vec<String>>()
         .join(",\n");
     let xml_attributes = nodes
@@ -165,8 +175,8 @@ fn child_nodes_or_key_val_handling(state: &mut State) -> NodeStrResult {
                 .collect::<Vec<String>>()
                 .join(",\n");
 
-            let indent_str = format!(" {}", state.get_indentation_str());
-            let final_node_str = format!("{}{{\n{}\n{}}}", indent_str, chilren_as_str, indent_str);
+            let indent_str = format!("{}", state.get_indentation_str());
+            let final_node_str = format!("{{\n{}\n{}}}", chilren_as_str, indent_str);
             NodeStrResult {
                 str_value: final_node_str.clone(),
                 xml_attributes_str,
