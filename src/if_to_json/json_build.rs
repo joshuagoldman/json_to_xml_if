@@ -1,5 +1,3 @@
-use std::fmt::format;
-
 use iter_tools::Itertools;
 
 use super::{NodeStrResult, State, XmlAttribute};
@@ -58,7 +56,7 @@ pub fn build_array_json(nodes: &Vec<NodeStrResult>, state: &mut State) -> String
 
     let xml_attributes_str = xml_attributes.join(",\n");
 
-    let all_attr_null = xml_attributes.iter().all(|x| x == &"null");
+    let all_attr_null = xml_attributes.iter().all(|x| x.trim() == "null");
     if !all_attr_null {
         let xml_attributes_str_format = format!(
             "{}\"{}_attributes\": [\n{}\n{}]",
@@ -151,9 +149,10 @@ pub fn add_key_val_node_result(state: &mut State, str_val: &String) {
     let mut xml_attributes_str = String::new();
 
     let _ = get_xml_attributes(&last_node.xml_attributes, state, &mut xml_attributes_str);
+    let indent_str = state.get_indentation_str();
 
     let new_str = if str_val.is_empty() {
-        "null".to_string()
+        format!("{} null", indent_str)
     } else {
         str_val.clone()
     };
