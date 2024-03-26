@@ -126,7 +126,8 @@ impl State {
     fn update_node_stage(&mut self, node_stage: NodeStage) {
         let len = self.nodes.len() - 1;
 
-        self.nodes[len].stage = node_stage;
+        self.nodes[len].stage = node_stage.clone();
+        //println!("{:#?}", node_stage);
     }
 
     fn update_node_result(&mut self, node_result: NodeStrResult) {
@@ -152,16 +153,10 @@ impl State {
     fn update_attribute_key(&mut self, key: &String) {
         let len = self.nodes.len() - 1;
 
-        if self.nodes[len].xml_attributes.len() == 0 {
-            self.nodes[len].xml_attributes.push(XmlAttribute {
-                attribute_key: key.to_owned(),
-                attribute_val: String::new(),
-            })
-        } else {
-            let len_xml_attr = self.nodes[len].xml_attributes.len() - 1;
-
-            self.nodes[len].xml_attributes[len_xml_attr].attribute_key = key.clone();
-        }
+        self.nodes[len].xml_attributes.push(XmlAttribute {
+            attribute_key: key.to_owned(),
+            attribute_val: String::new(),
+        })
     }
 
     fn update_attribute_val(&mut self, str_val: &String) {
@@ -187,6 +182,10 @@ impl State {
         tabs_as_str.pop();
 
         tabs_as_str
+    }
+
+    fn print(&mut self) {
+        print!("{:#?}", self);
     }
 }
 
@@ -244,22 +243,30 @@ fn should_not_ignore_white_space(char_val: &char, state: &mut State) -> bool {
         return false;
     }
     if let None = state.nodes[state.nodes.len() - 1].node_key {
-        return false;
+        return true;
     }
 
-    match state.nodes[state.nodes.len() - 1].stage.clone() {
+    let last_node = state.nodes[state.nodes.len() - 1].stage.clone();
+    match last_node {
         NodeStage::OpenTag(OpenTagStage::Key) => {
             open_tag_key_stage_open(char_val, state, true);
-            true
         }
         NodeStage::OpenTag(OpenTagStage::Attributes(XmlAttributeStage::AttributeValue(
             ValueStage::Closed,
         ))) => {
             xml_attribute_value_closed(char_val, state, true);
-            true
         }
-        _ => false,
+        NodeStage::OpenTag(OpenTagStage::TagValue(_))
+        | NodeStage::OpenTag(OpenTagStage::TagValueCData(_))
+        | NodeStage::OpenTag(OpenTagStage::Attributes(XmlAttributeStage::AttributeValue(
+            ValueStage::Open(_),
+        ))) => {
+            return false;
+        }
+        _ => (),
     }
+
+    true
 }
 
 fn to_if_req_single(char_val: &char, state: &mut State) {
@@ -275,6 +282,7 @@ fn to_if_req_single(char_val: &char, state: &mut State) {
         if char_val != &'<' {
             unexpected_character_error(char_val, state)
         }
+        state.nodes.push(Node::new());
         return;
     }
 
@@ -283,10 +291,11 @@ fn to_if_req_single(char_val: &char, state: &mut State) {
     }
 
     let node_stage = state.nodes[state.nodes.len() - 1].clone().stage.clone();
-    match node_stage {
+    match node_stage.clone() {
         NodeStage::OpenTag(open_tag_options) => match open_tag_options {
             OpenTagStage::Key => open_tag_key_stage_open(char_val, state, false),
             OpenTagStage::Attributes(open_tag_stage_attributes) => {
+                // print!("{:#?}", node_stage);
                 open_tag_stage_attributes_decision(char_val, state, open_tag_stage_attributes)
             }
             OpenTagStage::TagValueCData(curr_val) => {
@@ -316,6 +325,7 @@ pub fn if_to_json(xml_str: &String) -> Result<String, String> {
     for (_, char_val) in xml_str.chars().enumerate() {
         to_if_req_single(&char_val, &mut state);
     }
+    panic!("nope");
 
     Result::Ok(state.curr_json)
 }

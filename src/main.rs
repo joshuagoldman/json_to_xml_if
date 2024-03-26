@@ -11,7 +11,7 @@ mod tests {
     use std::{fs::File, io::Write};
 
     use crate::{
-        if_to_json::{Node, NodeStrResult, State, XmlAttribute},
+        if_to_json::{if_to_json, Node, NodeStrResult, State, XmlAttribute},
         json_to_if::to_if_req,
     };
 
@@ -34,7 +34,7 @@ mod tests {
     #[test]
     fn test_parse_to_json() {
         let json = include_str!("./embedded_resources/xml_example.xml");
-        let result = to_if_req(&json.to_string());
+        let result = if_to_json(&json.to_string());
 
         match result {
             Ok(ok_res) => {

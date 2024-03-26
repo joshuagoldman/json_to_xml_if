@@ -4,9 +4,9 @@ pub fn open_tag_stage_cdata_open(char_val: &char, state: &mut State, curr_val: &
     let new_string_val = format!("{}{}", curr_val, char_val);
     match char_val {
         '<' => {
-            if new_string_val.ends_with("]]>") && new_string_val.starts_with("<![CDATA[") {
+            if curr_val.trim_end().ends_with("]]>") && curr_val.starts_with("<![CDATA[") {
                 state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::ForwardSlash));
-                add_key_val_node_result(state, &curr_val);
+                add_key_val_node_result(state, &curr_val.trim().to_string());
             } else {
                 state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValueCData(
                     new_string_val,

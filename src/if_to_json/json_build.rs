@@ -102,34 +102,14 @@ pub fn build_object_json(node: &NodeStrResult, state: &mut State) -> String {
 }
 
 fn build_json_simple_val(node: &NodeStrResult, state: &mut State) -> String {
-    let indent_str = state.get_indentation_str();
-
-    let mut xml_attributes_str = node.xml_attributes_str.clone();
-
-    if xml_attributes_str.is_empty() {
-        xml_attributes_str = "null".to_string();
-    }
-
-    let json_val = match (node.str_value == "null", node.str_value.parse::<i32>()) {
-        (false, Ok(_)) => node.str_value.clone(),
-        (false, Err(_)) => {
-            format!("\"{}\"", node.str_value)
-        }
+    let json_val = match (
+        node.str_value.trim() == "null",
+        node.str_value.parse::<i32>(),
+    ) {
+        (false, Ok(_)) => node.str_value.clone().replace("\"", ""),
         (_, _) => node.str_value.clone(),
     };
-
-    if xml_attributes_str != "null" {
-        let xml_attributes_str_format = format!(
-            "{}\"{}_attributes\": {}",
-            indent_str, node.key, xml_attributes_str
-        );
-        format!(
-            "{}\"{}\": {},\n{}{}",
-            indent_str, node.key, json_val, indent_str, xml_attributes_str_format
-        )
-    } else {
-        format!("{}\"{}\": {}", indent_str, node.key, node.str_value)
-    }
+    json_val
 }
 
 fn node_to_json(nodes: &Vec<NodeStrResult>, state: &mut State) -> String {
@@ -153,8 +133,10 @@ pub fn add_key_val_node_result(state: &mut State, str_val: &String) {
 
     let new_str = if str_val.is_empty() {
         format!("{} null", indent_str)
+    } else if let Ok(_) = str_val.parse::<i32>() {
+        format!("{} {}", indent_str, str_val.clone())
     } else {
-        str_val.clone()
+        format!("{}\"{}\"", indent_str, str_val.clone())
     };
 
     let node_res = NodeStrResult {
@@ -193,12 +175,13 @@ pub fn json_construct(state: &mut State) {
         Some(some_key) => some_key,
         None => "unknown".to_string(),
     };
+    print!("\nfinal: {}", final_node_str.clone());
 
-    if state.nodes.len() > 1 {
+    if state.nodes.len() > 0 {
         let mut xml_attributes_str = String::new();
         get_xml_attributes(&last_node.xml_attributes, state, &mut xml_attributes_str);
         state.update_node_result_parent(NodeStrResult {
-            str_value: final_node_str,
+            str_value: final_node_str.clone(),
             xml_attributes_str,
             key,
         });
