@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use self::{
     array_val::{
         array_val_json_null_case_closed, array_val_json_null_case_open,
@@ -19,6 +21,7 @@ mod array_val;
 mod json_array;
 mod json_object;
 mod key_val;
+mod xml_attributes;
 
 #[derive(Clone, Debug)]
 struct Field {
@@ -96,12 +99,48 @@ enum NestingState {
     JsonArrayNestingState,
 }
 
+#[derive(Debug, Clone)]
+struct XmlAttribute {
+    xml_atrribute_key: String,
+    xml_attribute_value: String,
+}
+
+#[derive(Debug, Clone)]
+struct XmlAttributeObjectInfo {
+    attributes: Vec<XmlAttribute>,
+}
+
+#[derive(Debug, Clone)]
+struct XmlAttributeArrayinfo {
+    attributes: Vec<Vec<XmlAttribute>>,
+    keys_amount: i32,
+}
+
+#[derive(Debug, Clone)]
+struct XmlAttributeNoAttributeInfo {
+    keys_amount: i32,
+}
+
+#[derive(Debug, Clone)]
+enum XmlAttributesType {
+    ArrayTypeAttributes(XmlAttributeArrayinfo),
+    ObjectAttributes(XmlAttributeObjectInfo),
+    NoAttribute(XmlAttributeNoAttributeInfo),
+}
+
+#[derive(Debug, Clone)]
+struct XmlAttributesInfo {
+    xml_attribute_type_key: HashMap<String, XmlAttributesType>,
+    current_key: Option<String>,
+}
+
 #[derive(Debug)]
 struct State {
     fields: Vec<Field>,
     curr_xml: String,
     curr_row_num: i32,
     curr_indent: i32,
+    xml_attribute_info: XmlAttributesInfo,
 }
 
 impl State {
@@ -111,6 +150,10 @@ impl State {
             curr_xml: String::new(),
             curr_row_num: 1,
             curr_indent: 0,
+            xml_attribute_info: XmlAttributesInfo {
+                xml_attribute_type_key: HashMap::new(),
+                current_key: None,
+            },
         }
     }
 

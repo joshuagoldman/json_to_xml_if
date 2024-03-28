@@ -1,7 +1,7 @@
 <root>
-  <data><![CDATA[This is a CDATA value. It can contain special characters like <, >, &, etc.]]></data>
+  <data name="Lis" yrke= "snickare"><![CDATA[This is a CDATA value. It can contain special characters like <, >, &, etc.]]></data>
   <nodes>
-    <node key="1" attribute1="value1" attribute2="value2" attribute3="value3" />
+          <node key="1" attribute1="value1" attribute2="value2" attribute3="value3">-344< /node>
     <node key="2" attribute1="value4" attribute2="value5" attribute3="value6" />
     <node key="3" attribute1="value7" attribute2="value8" attribute3="value9">Additional value</node>
   </nodes>
@@ -10,7 +10,7 @@
   </randomNode>
   <randomNode attribute1="randomValue1" attribute2="randomValue2" attribute3="randomValue3">
     <childNode />
-    <nodes>
+    <nodes vlocity= "negative" gender="male" >
       <node key="1" attribute1="value1" attribute2="value2" attribute3="value3" />
       <node key="2" attribute1="value4" attribute2="value5" attribute3="value6" />
       <node key="3" attribute1="value7" attribute2="value8" attribute3="value9">Additional value</node>
