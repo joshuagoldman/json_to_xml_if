@@ -1,8 +1,8 @@
-use crate::json_to_if::TokenStage;
-
 use super::{
-    add_close_tag, add_tag_val, unexpected_character_error, ArrayValType, JsonNull, JsonStr, State,
-    TokenType,
+    add_close_tag, add_tag_val,
+    models::{ArrayValType, JsonNull, JsonStr, TokenStage, TokenType},
+    state::State,
+    unexpected_character_error,
 };
 
 pub fn array_val_json_str_open_case(char_val: &char, state: &mut State, json_str: &String) {

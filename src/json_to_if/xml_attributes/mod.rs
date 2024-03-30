@@ -6,7 +6,6 @@ use self::{
     xml_attributes_array::{
         array_attributes_stage_key_closed, array_attributes_stage_key_open,
         array_attributes_stage_key_val_field_separator,
-        array_attributes_stage_key_val_field_separator_case,
         array_attributes_stage_key_val_separator_case, array_attributes_stage_object_end,
         array_attributes_stage_object_init, array_attributes_stage_object_separator,
         array_attributes_stage_value_closed, array_attributes_stage_value_open,
@@ -174,7 +173,7 @@ fn xml_attributes_check_state(
     state: &mut State,
     basic_info: &XmlAttributesBasicInfo,
 ) {
-    match state.xml_attribute_info.current_state {
+    match state.xml_attribute_info.current_state.clone() {
         XmlAttributeState::NoAttributes => (),
         XmlAttributeState::Attributes(attributes_info) => {
             xml_attributes_state_attributes(char_val, state, basic_info, attributes_info)

@@ -1,7 +1,3 @@
-use std::{collections::HashMap, error::Error};
-
-use regex::Regex;
-
 use self::{
     array_val::{
         array_val_json_null_case_closed, array_val_json_null_case_open,
@@ -17,165 +13,20 @@ use self::{
         key_val_json_null_case_open, key_val_json_number_open_case, key_val_json_str_close_case,
         key_val_json_str_open_case, key_val_separator_case,
     },
-    xml_attributes::models::{XmlAttributeState, XmlAttributesArrayStages, XmlAttributesBasicInfo, XmlAttributesInfo},
+    models::{
+        ArrayValType, Field, JsonNull, JsonStr, KeyValState, KeyValType, NestingState, TokenStage,
+        TokenStageKey, TokenType,
+    },
+    state::State,
 };
 
 pub mod array_val;
 mod json_array;
 mod json_object;
 mod key_val;
+pub mod models;
+pub mod state;
 pub mod xml_attributes;
-
-let IS_ALLOWED_KEY_REGEX_EXPR: &'static Regex = Regex::new(r"^[aA-zZ]").unwrap();
-
-#[derive(Clone, Debug)]
-struct Field {
-    token_type: TokenType,
-    key: Option<String>,
-    nesting_state: NestingState,
-}
-
-impl Field {
-    fn new() -> Self {
-        Self {
-            token_type: TokenType::JsonObject(TokenStage::Opening),
-            key: None,
-            nesting_state: NestingState::JsonObjectNestinState,
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
-enum JsonStr {
-    Open(String),
-    Closing,
-}
-
-#[derive(Clone, Debug)]
-enum JsonNull {
-    Open(String),
-    Closing,
-}
-
-#[derive(Clone, Debug)]
-enum KeyValType {
-    JsonStr(JsonStr),
-    JsonNumber(String),
-    Null(JsonNull),
-}
-
-#[derive(Clone, Debug)]
-enum ArrayValType {
-    JsonStr(JsonStr),
-    JsonNumber(String),
-    Null(JsonNull),
-}
-
-#[derive(Clone, Debug)]
-enum TokenStage<T> {
-    Opening,
-    Content(T),
-    ItemSeparator,
-    Closing,
-}
-
-#[derive(Clone, Debug)]
-enum TokenStageKey {
-    Opening,
-    KeyValSeparator,
-    Closing,
-}
-
-#[derive(Clone, Debug)]
-enum KeyValState {
-    KeyState(TokenStageKey),
-    ValState(KeyValType),
-}
-
-#[derive(Clone, Debug)]
-enum TokenType {
-    JsonObject(TokenStage<KeyValState>),
-    JsonArray(TokenStage<ArrayValType>),
-}
-
-#[derive(Debug, Clone)]
-enum NestingState {
-    JsonObjectNestinState,
-    JsonArrayNestingState,
-}
-
-#[derive(Debug)]
-struct State {
-    fields: Vec<Field>,
-    curr_xml: String,
-    curr_row_num: i32,
-    curr_indent: i32,
-    xml_attribute_info: XmlAttributesInfo,
-}
-
-impl State {
-    fn new() -> Self {
-        Self {
-            fields: Vec::new(),
-            curr_xml: String::new(),
-            curr_row_num: 1,
-            curr_indent: 0,
-            xml_attribute_info: XmlAttributesInfo {
-                xml_attributes_map: HashMap::new(),
-                current_state: XmlAttributeState::NoAttributes,
-            },
-        }
-    }
-
-    fn update_to_item_separate_state(&mut self) {
-        if let NestingState::JsonArrayNestingState =
-            self.fields[self.fields.len() - 1].nesting_state
-        {
-            let len = self.fields.len() - 1;
-            self.fields[len.clone()].token_type = TokenType::JsonArray(TokenStage::ItemSeparator);
-        } else if let NestingState::JsonObjectNestinState =
-            self.fields[self.fields.len() - 1].nesting_state
-        {
-            let len = self.fields.len() - 1;
-            self.fields[len.clone()].token_type = TokenType::JsonObject(TokenStage::ItemSeparator);
-        }
-    }
-
-    fn update_to_closed_state(&mut self) {
-        if self.fields.len() < 1 {
-            return;
-        }
-
-        match self.fields[self.fields.len() - 1].nesting_state {
-            NestingState::JsonObjectNestinState => {
-                self.update_token_type(TokenType::JsonArray(TokenStage::Closing))
-            }
-            NestingState::JsonArrayNestingState => {
-                self.update_token_type(TokenType::JsonObject(TokenStage::Closing))
-            }
-        }
-    }
-
-    fn update_token_type(&mut self, token_type: TokenType) {
-        let len = self.fields.len() - 1;
-        self.fields[len.clone()].token_type = token_type;
-    }
-
-    fn update_nesting_state(&mut self, nesting_state: NestingState) {
-        let len = self.fields.len() - 1;
-        self.fields[len.clone()].nesting_state = nesting_state;
-    }
-
-    fn get_indentation_str(&mut self) -> String {
-        let mut tabs_as_str = String::new();
-        for _ in 0..self.curr_indent {
-            tabs_as_str.push(' ');
-        }
-        tabs_as_str.pop();
-
-        format!("\n{}", tabs_as_str)
-    }
-}
 
 fn add_open_tag(state: &mut State, indent: bool) {
     state.curr_indent += 1;
@@ -348,33 +199,6 @@ fn json_val_open_case_char_empty_val(char_val: &char, state: &mut State) -> bool
             true
         }
         _ => true,
-    }
-}
-
-fn xml_attributes_state_attributes_array(char_val: &char, state: &mut State, array_stages: XmlAttributesArrayStages) {
-    match array_stages {
-        XmlAttributesArrayStages::Init => todo!(),
-        XmlAttributesArrayStages::ObjectInit => todo!(),
-        XmlAttributesArrayStages::Key(_) => todo!(),
-        XmlAttributesArrayStages::KeyValSeparator => todo!(),
-        XmlAttributesArrayStages::Value(_) => todo!(),
-        XmlAttributesArrayStages::KeyValFieldSeparator => todo!(),
-        XmlAttributesArrayStages::ObjectEnd => todo!(),
-        XmlAttributesArrayStages::ObjectSeparator => todo!(),
-    }
-}
-
-fn xml_attributes_state_attributes(char_val: &char, state: &mut State, attributes_info: XmlAttributesBasicInfo) {
-    match attributes_info.curr_stage {
-        xml_attributes::models::XmlAttributesStages::Array(_) => todo!(),
-        xml_attributes::models::XmlAttributesStages::Object(_) => todo!(),
-    }
-}
-
-fn xml_attributes_check_state(char_val: &char, state: &mut State) {
-    match state.xml_attribute_info.current_state {
-        XmlAttributeState::NoAttributes => todo!(),
-        XmlAttributeState::Attributes(_) => todo!(),
     }
 }
 

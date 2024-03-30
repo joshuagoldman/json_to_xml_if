@@ -125,18 +125,18 @@ impl State {
         }
     }
 
-    fn update_node_stage(&mut self, node_stage: NodeStage) {
+    pub fn update_node_stage(&mut self, node_stage: NodeStage) {
         let len = self.nodes.len() - 1;
 
         self.nodes[len].stage = node_stage.clone();
     }
 
-    fn update_node_key_val(&mut self, node_result: NodeStrResult) {
+    pub fn update_node_key_val(&mut self, node_result: NodeStrResult) {
         let len = self.nodes.len() - 1;
         self.nodes[len].child_node_result = ChildNodesOrKeyVal::KeyValue(node_result);
     }
 
-    fn update_node_result_parent(&mut self, node_result: NodeStrResult) {
+    pub fn update_node_result_parent(&mut self, node_result: NodeStrResult) {
         let pos = self.nodes.len() - 2;
         match self.nodes[pos].child_node_result.clone() {
             ChildNodesOrKeyVal::ChildNodes(child_nodes) => {
@@ -151,7 +151,7 @@ impl State {
         }
     }
 
-    fn update_attribute_key(&mut self, key: &String) {
+    pub fn update_attribute_key(&mut self, key: &String) {
         let len = self.nodes.len() - 1;
 
         self.nodes[len].xml_attributes.push(XmlAttribute {
@@ -160,7 +160,7 @@ impl State {
         })
     }
 
-    fn update_attribute_val(&mut self, str_val: &String) {
+    pub fn update_attribute_val(&mut self, str_val: &String) {
         let len = self.nodes.len() - 1;
 
         if self.nodes[len].xml_attributes.len() == 0 {
@@ -175,7 +175,7 @@ impl State {
         }
     }
 
-    fn get_indentation_str(&mut self) -> String {
+    pub fn get_indentation_str(&mut self) -> String {
         let mut tabs_as_str = String::new();
         for _ in 0..self.curr_indent {
             tabs_as_str.push(' ');

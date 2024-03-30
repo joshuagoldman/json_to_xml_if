@@ -1,6 +1,7 @@
 use super::{
-    add_close_tag, add_open_tag, unexpected_character_error, Field, KeyValState, NestingState,
-    State, TokenStage, TokenStageKey, TokenType,
+    add_close_tag, add_open_tag,
+    models::{KeyValState, TokenStage, TokenStageKey, TokenType},
+    unexpected_character_error, Field, NestingState, State,
 };
 
 pub fn json_object_open_case(char_val: &char, state: &mut State) {

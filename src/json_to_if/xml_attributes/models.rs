@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use crate::json_to_if::NestingState;
+
 #[derive(Debug, Clone)]
 pub struct XmlAttribute {
     xml_atrribute_key: String,
@@ -13,8 +15,8 @@ pub struct XmlAttributeObjectInfo {
 
 #[derive(Debug, Clone)]
 pub struct XmlAttributeArrayinfo {
-    attributes: Vec<Vec<XmlAttribute>>,
-    keys_amount: i32,
+    pub attributes: Vec<Vec<XmlAttribute>>,
+    pub keys_amount: i32,
 }
 
 #[derive(Debug, Clone)]
@@ -62,9 +64,15 @@ pub enum XmlAttributesType {
     NoAttribute(XmlAttributeNoAttributeInfo),
 }
 
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
+pub struct XmlAttributesMapKey {
+    pub attribute_base_name: String,
+    pub attribute_type: NestingState,
+}
+
 #[derive(Debug, Clone)]
 pub struct XmlAttributesBasicInfo {
-    pub current_key: String,
+    pub current_key: XmlAttributesMapKey,
     pub curr_stage: XmlAttributesStages,
 }
 
@@ -76,15 +84,19 @@ pub enum XmlAttributeState {
 
 #[derive(Debug, Clone)]
 pub struct XmlAttributesInfo {
-    pub xml_attributes_map: HashMap<String, XmlAttributesType>,
+    pub xml_attributes_map: HashMap<XmlAttributesMapKey, XmlAttributesType>,
     pub current_state: XmlAttributeState,
 }
 
 impl XmlAttributesInfo {
-    pub fn update_state(&mut self, current_key: String, curr_stage: XmlAttributesStages) {
+    pub fn update_state(
+        &mut self,
+        current_key: &XmlAttributesMapKey,
+        curr_stage: XmlAttributesStages,
+    ) {
         self.current_state = XmlAttributeState::Attributes(XmlAttributesBasicInfo {
             curr_stage,
-            current_key,
+            current_key: current_key.clone(),
         });
     }
 
@@ -92,11 +104,15 @@ impl XmlAttributesInfo {
         self.current_state = XmlAttributeState::NoAttributes;
     }
 
-    pub fn update_xml_attribute_key(&mut self, current_key: &String, xml_atrribute_key: &String) {
+    pub fn update_xml_attribute_key(
+        &mut self,
+        current_key: &XmlAttributesMapKey,
+        xml_atrribute_key: &String,
+    ) {
         match self.xml_attributes_map.get_mut(current_key) {
             Some(xml_attributes_info) => match xml_attributes_info {
                 XmlAttributesType::ArrayTypeAttributes(array_type_info) => {
-                    let new_attr_vec = array_type_info.attributes.last().unwrap();
+                    let mut new_attr_vec = array_type_info.attributes.last().unwrap().clone();
 
                     new_attr_vec.push(XmlAttribute {
                         xml_attribute_value: String::new(),
@@ -114,21 +130,21 @@ impl XmlAttributesInfo {
                 }
                 XmlAttributesType::NoAttribute(_) => (),
             },
-            None => todo!(),
+            None => (),
         }
     }
 
     pub fn update_xml_attribute_value(
         &mut self,
-        current_key: &String,
+        current_key: &XmlAttributesMapKey,
         xml_atrribute_value: &String,
     ) {
         match self.xml_attributes_map.get_mut(current_key) {
             Some(xml_attributes_info) => match xml_attributes_info {
                 XmlAttributesType::ArrayTypeAttributes(array_type_info) => {
-                    let new_attr_vec = array_type_info.attributes.last().unwrap();
+                    let mut new_attr_vec = array_type_info.attributes.last().unwrap().clone();
 
-                    let mut last_attr_info = new_attr_vec.last().unwrap();
+                    let mut last_attr_info = new_attr_vec.last().unwrap().clone();
                     last_attr_info.xml_attribute_value = xml_atrribute_value.clone();
 
                     new_attr_vec.pop();
@@ -138,7 +154,7 @@ impl XmlAttributesInfo {
                     array_type_info.attributes.push(new_attr_vec.clone());
                 }
                 XmlAttributesType::ObjectAttributes(object_type_info) => {
-                    let last_attribute = object_type_info.attributes.last().unwrap();
+                    let mut last_attribute = object_type_info.attributes.last().unwrap().clone();
                     last_attribute.xml_attribute_value = xml_atrribute_value.clone();
 
                     object_type_info.attributes.pop();

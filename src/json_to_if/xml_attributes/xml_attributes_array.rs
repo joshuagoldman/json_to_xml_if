@@ -1,6 +1,6 @@
-use crate::json_to_if::{State, IS_ALLOWED_KEY_REGEX_EXPR};
+use crate::json_to_if::models::IS_ALLOWED_KEY_REGEX_EXPR;
+use crate::json_to_if::State;
 
-use super::models::XmlAttributeState;
 use super::models::{
     XmlAttributeKeyValueStages, XmlAttributesArrayStages, XmlAttributesBasicInfo,
     XmlAttributesStages,
@@ -13,7 +13,7 @@ pub fn array_attributes_stage_init(
 ) {
     match char_val {
         '{' => state.xml_attribute_info.update_state(
-            basic_info.current_key,
+            &basic_info.current_key.clone(),
             XmlAttributesStages::Array(XmlAttributesArrayStages::ObjectInit),
         ),
         _ => {
@@ -29,7 +29,7 @@ pub fn array_attributes_stage_object_init(
 ) {
     match char_val {
         '"' => state.xml_attribute_info.update_state(
-            basic_info.current_key,
+            &basic_info.current_key.clone(),
             XmlAttributesStages::Array(XmlAttributesArrayStages::ObjectInit),
         ),
         _ => {
@@ -49,9 +49,9 @@ pub fn array_attributes_stage_key_open(
         '"' => {
             state
                 .xml_attribute_info
-                .update_xml_attribute_key(&basic_info.current_key, attribute_key);
+                .update_xml_attribute_key(&&basic_info.current_key, attribute_key);
             state.xml_attribute_info.update_state(
-                basic_info.current_key,
+                &basic_info.current_key,
                 XmlAttributesStages::Array(XmlAttributesArrayStages::Key(
                     XmlAttributeKeyValueStages::Closed,
                 )),
@@ -59,7 +59,7 @@ pub fn array_attributes_stage_key_open(
         }
         _ => match IS_ALLOWED_KEY_REGEX_EXPR.is_match(&new_val) {
             true => state.xml_attribute_info.update_state(
-                basic_info.current_key,
+                &basic_info.current_key,
                 XmlAttributesStages::Array(XmlAttributesArrayStages::Key(
                     XmlAttributeKeyValueStages::Open(new_val),
                 )),
@@ -79,7 +79,7 @@ pub fn array_attributes_stage_key_closed(
     match char_val {
         ':' => {
             state.xml_attribute_info.update_state(
-                basic_info.current_key,
+                &basic_info.current_key,
                 XmlAttributesStages::Array(XmlAttributesArrayStages::KeyValFieldSeparator),
             );
         }
@@ -95,7 +95,7 @@ pub fn array_attributes_stage_key_val_separator_case(
     match char_val {
         '"' => {
             state.xml_attribute_info.update_state(
-                basic_info.current_key,
+                &basic_info.current_key,
                 XmlAttributesStages::Array(XmlAttributesArrayStages::Value(
                     XmlAttributeKeyValueStages::Open(String::new()),
                 )),
@@ -114,14 +114,14 @@ pub fn array_attributes_stage_value_open(
     let new_val = format!("{}{}", curr_key, char_val);
     match char_val {
         '"' => state.xml_attribute_info.update_state(
-            basic_info.current_key,
+            &basic_info.current_key,
             XmlAttributesStages::Array(XmlAttributesArrayStages::Value(
                 XmlAttributeKeyValueStages::Closed,
             )),
         ),
         _ => {
             state.xml_attribute_info.update_state(
-                basic_info.current_key,
+                &basic_info.current_key,
                 XmlAttributesStages::Array(XmlAttributesArrayStages::Value(
                     XmlAttributeKeyValueStages::Open(new_val),
                 )),
@@ -138,13 +138,13 @@ pub fn array_attributes_stage_value_closed(
     match char_val {
         ',' => {
             state.xml_attribute_info.update_state(
-                basic_info.current_key,
+                &basic_info.current_key,
                 XmlAttributesStages::Array(XmlAttributesArrayStages::KeyValFieldSeparator),
             );
         }
         '}' => {
             state.xml_attribute_info.update_state(
-                basic_info.current_key,
+                &basic_info.current_key,
                 XmlAttributesStages::Array(XmlAttributesArrayStages::ObjectEnd),
             );
         }
@@ -160,7 +160,7 @@ pub fn array_attributes_stage_key_val_field_separator(
     match char_val {
         ',' => {
             state.xml_attribute_info.update_state(
-                basic_info.current_key,
+                &&basic_info.current_key,
                 XmlAttributesStages::Array(XmlAttributesArrayStages::Key(
                     XmlAttributeKeyValueStages::Open(String::new()),
                 )),
@@ -168,7 +168,7 @@ pub fn array_attributes_stage_key_val_field_separator(
         }
         '}' => {
             state.xml_attribute_info.update_state(
-                basic_info.current_key,
+                &&basic_info.current_key,
                 XmlAttributesStages::Array(XmlAttributesArrayStages::ObjectEnd),
             );
         }
@@ -184,13 +184,13 @@ pub fn array_attributes_stage_object_end(
     match char_val {
         ',' => {
             state.xml_attribute_info.update_state(
-                basic_info.current_key,
+                &&basic_info.current_key,
                 XmlAttributesStages::Array(XmlAttributesArrayStages::ObjectSeparator),
             );
         }
         ']' => {
             state.xml_attribute_info.update_state(
-                basic_info.current_key,
+                &&basic_info.current_key,
                 XmlAttributesStages::Array(XmlAttributesArrayStages::ObjectEnd),
             );
         }
@@ -206,7 +206,7 @@ pub fn array_attributes_stage_object_separator(
     match char_val {
         '{' => {
             state.xml_attribute_info.update_state(
-                basic_info.current_key,
+                &&basic_info.current_key,
                 XmlAttributesStages::Array(XmlAttributesArrayStages::ObjectSeparator),
             );
         }

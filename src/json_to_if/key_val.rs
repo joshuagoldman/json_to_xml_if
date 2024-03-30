@@ -1,10 +1,14 @@
 use regex::Regex;
 
-use crate::json_to_if::{add_open_tag, JsonNull};
+use crate::json_to_if::{
+    add_open_tag,
+    models::{JsonNull, JsonStr, KeyValState, KeyValType},
+};
 
 use super::{
-    add_close_tag, add_tag_val, unexpected_character_error, JsonStr, KeyValState, KeyValType,
-    State, TokenStage, TokenStageKey, TokenType,
+    add_close_tag, add_tag_val,
+    models::{TokenStage, TokenStageKey, TokenType},
+    unexpected_character_error, State,
 };
 
 fn json_key_update(state: &mut State, char_val: &char) -> String {
@@ -42,7 +46,7 @@ pub fn key_open_case(char_val: &char, state: &mut State) {
 pub fn key_closed_cased(char_val: &char, state: &mut State) {
     match char_val {
         ':' => state.update_token_type(TokenType::JsonObject(TokenStage::Content(
-            KeyValState::KeyState(super::TokenStageKey::KeyValSeparator),
+            KeyValState::KeyState(TokenStageKey::KeyValSeparator),
         ))),
         _ => unexpected_character_error(char_val, state),
     }
