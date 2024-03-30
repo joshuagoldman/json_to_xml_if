@@ -1,4 +1,6 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, error::Error};
+
+use regex::Regex;
 
 use self::{
     array_val::{
@@ -15,13 +17,16 @@ use self::{
         key_val_json_null_case_open, key_val_json_number_open_case, key_val_json_str_close_case,
         key_val_json_str_open_case, key_val_separator_case,
     },
+    xml_attributes::models::{XmlAttributeState, XmlAttributesArrayStages, XmlAttributesBasicInfo, XmlAttributesInfo},
 };
 
-mod array_val;
+pub mod array_val;
 mod json_array;
 mod json_object;
 mod key_val;
-mod xml_attributes;
+pub mod xml_attributes;
+
+let IS_ALLOWED_KEY_REGEX_EXPR: &'static Regex = Regex::new(r"^[aA-zZ]").unwrap();
 
 #[derive(Clone, Debug)]
 struct Field {
@@ -99,41 +104,6 @@ enum NestingState {
     JsonArrayNestingState,
 }
 
-#[derive(Debug, Clone)]
-struct XmlAttribute {
-    xml_atrribute_key: String,
-    xml_attribute_value: String,
-}
-
-#[derive(Debug, Clone)]
-struct XmlAttributeObjectInfo {
-    attributes: Vec<XmlAttribute>,
-}
-
-#[derive(Debug, Clone)]
-struct XmlAttributeArrayinfo {
-    attributes: Vec<Vec<XmlAttribute>>,
-    keys_amount: i32,
-}
-
-#[derive(Debug, Clone)]
-struct XmlAttributeNoAttributeInfo {
-    keys_amount: i32,
-}
-
-#[derive(Debug, Clone)]
-enum XmlAttributesType {
-    ArrayTypeAttributes(XmlAttributeArrayinfo),
-    ObjectAttributes(XmlAttributeObjectInfo),
-    NoAttribute(XmlAttributeNoAttributeInfo),
-}
-
-#[derive(Debug, Clone)]
-struct XmlAttributesInfo {
-    xml_attribute_type_key: HashMap<String, XmlAttributesType>,
-    current_key: Option<String>,
-}
-
 #[derive(Debug)]
 struct State {
     fields: Vec<Field>,
@@ -151,8 +121,8 @@ impl State {
             curr_row_num: 1,
             curr_indent: 0,
             xml_attribute_info: XmlAttributesInfo {
-                xml_attribute_type_key: HashMap::new(),
-                current_key: None,
+                xml_attributes_map: HashMap::new(),
+                current_state: XmlAttributeState::NoAttributes,
             },
         }
     }
@@ -378,6 +348,33 @@ fn json_val_open_case_char_empty_val(char_val: &char, state: &mut State) -> bool
             true
         }
         _ => true,
+    }
+}
+
+fn xml_attributes_state_attributes_array(char_val: &char, state: &mut State, array_stages: XmlAttributesArrayStages) {
+    match array_stages {
+        XmlAttributesArrayStages::Init => todo!(),
+        XmlAttributesArrayStages::ObjectInit => todo!(),
+        XmlAttributesArrayStages::Key(_) => todo!(),
+        XmlAttributesArrayStages::KeyValSeparator => todo!(),
+        XmlAttributesArrayStages::Value(_) => todo!(),
+        XmlAttributesArrayStages::KeyValFieldSeparator => todo!(),
+        XmlAttributesArrayStages::ObjectEnd => todo!(),
+        XmlAttributesArrayStages::ObjectSeparator => todo!(),
+    }
+}
+
+fn xml_attributes_state_attributes(char_val: &char, state: &mut State, attributes_info: XmlAttributesBasicInfo) {
+    match attributes_info.curr_stage {
+        xml_attributes::models::XmlAttributesStages::Array(_) => todo!(),
+        xml_attributes::models::XmlAttributesStages::Object(_) => todo!(),
+    }
+}
+
+fn xml_attributes_check_state(char_val: &char, state: &mut State) {
+    match state.xml_attribute_info.current_state {
+        XmlAttributeState::NoAttributes => todo!(),
+        XmlAttributeState::Attributes(_) => todo!(),
     }
 }
 
