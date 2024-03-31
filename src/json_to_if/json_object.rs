@@ -11,6 +11,7 @@ pub fn json_object_open_case(char_val: &char, state: &mut State) {
             state.update_nesting_state(NestingState::JsonObjectNestinState);
 
             state.fields.push(Field::new());
+            state.check_init_xml_attributes();
             state.update_token_type(TokenType::JsonObject(TokenStage::Content(
                 KeyValState::KeyState(TokenStageKey::Opening),
             )));

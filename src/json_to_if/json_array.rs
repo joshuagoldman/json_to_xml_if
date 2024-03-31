@@ -24,6 +24,7 @@ pub fn json_array_open_case(char_val: &char, state: &mut State) {
             let mut field = Field::new();
             field.key = state.fields[state.fields.len() - 1].key.clone();
             state.fields.push(field);
+            state.check_init_xml_attributes();
 
             state.update_token_type(TokenType::JsonObject(TokenStage::Opening));
         }

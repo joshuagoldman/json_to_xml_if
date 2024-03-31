@@ -181,7 +181,12 @@ fn xml_attributes_check_state(
     state: &mut State,
     basic_info: &XmlAttributesBasicInfo,
 ) {
-    match state.xml_attribute_info.current_state.clone() {
+    let last_index = state.fields.len() - 1;
+    match state.fields[last_index.clone()]
+        .xml_attribute_info
+        .current_state
+        .clone()
+    {
         XmlAttributeState::NoAttributes => (),
         XmlAttributeState::Attributes(attributes_info) => {
             xml_attributes_state_attributes(char_val, state, basic_info, attributes_info)

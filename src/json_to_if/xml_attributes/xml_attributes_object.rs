@@ -11,16 +11,16 @@ pub fn object_attributes_stage_init(
     basic_info: &XmlAttributesBasicInfo,
 ) {
     match char_val {
-        '"' => state.xml_attribute_info.update_state(
-            &basic_info.current_key,
+        '"' => state.update_state(
+            &basic_info,
             XmlAttributesStages::Object(XmlAttributesObjectStages::Init),
         ),
-        'n' => state.xml_attribute_info.update_state(
-            &basic_info.current_key.clone(),
+        'n' => state.update_state(
+            &basic_info.clone(),
             XmlAttributesStages::Object(XmlAttributesObjectStages::NullValue("n".to_string())),
         ),
         _ => {
-            state.xml_attribute_info.abort_xml_attributes();
+            state.abort_xml_attributes();
         }
     }
 }
@@ -35,8 +35,8 @@ pub fn object_attributes_stage_null(
     println!("current val is: {}", new_str_val);
     match new_str_val == "null" {
         true => {
-            state.xml_attribute_info.update_state(
-                &basic_info.current_key,
+            state.update_state(
+                &basic_info,
                 XmlAttributesStages::Object(XmlAttributesObjectStages::Value(
                     XmlAttributeKeyValueStages::Closed,
                 )),
@@ -44,15 +44,15 @@ pub fn object_attributes_stage_null(
         }
         _ => match "null".contains(new_str_val.as_str()) {
             true => {
-                state.xml_attribute_info.update_state(
-                    &basic_info.current_key.clone(),
+                state.update_state(
+                    &basic_info.clone(),
                     XmlAttributesStages::Object(XmlAttributesObjectStages::NullValue(
                         "n".to_string(),
                     )),
                 );
             }
             false => {
-                state.xml_attribute_info.abort_xml_attributes();
+                state.abort_xml_attributes();
             }
         },
     }
@@ -67,25 +67,23 @@ pub fn object_attributes_stage_key_open(
     let new_val = format!("{}{}", attribute_key, char_val);
     match char_val {
         '"' => {
-            state
-                .xml_attribute_info
-                .update_xml_attribute_key(&&basic_info.current_key, attribute_key);
-            state.xml_attribute_info.update_state(
-                &basic_info.current_key,
+            state.update_xml_attribute_key(attribute_key);
+            state.update_state(
+                &basic_info,
                 XmlAttributesStages::Object(XmlAttributesObjectStages::Key(
                     XmlAttributeKeyValueStages::Closed,
                 )),
             )
         }
         _ => match IS_ALLOWED_KEY_REGEX_EXPR.get().unwrap().is_match(&new_val) {
-            true => state.xml_attribute_info.update_state(
-                &basic_info.current_key,
+            true => state.update_state(
+                &basic_info,
                 XmlAttributesStages::Object(XmlAttributesObjectStages::Key(
                     XmlAttributeKeyValueStages::Open(new_val),
                 )),
             ),
             false => {
-                state.xml_attribute_info.abort_xml_attributes();
+                state.abort_xml_attributes();
             }
         },
     }
@@ -98,12 +96,12 @@ pub fn object_attributes_stage_key_closed(
 ) {
     match char_val {
         ':' => {
-            state.xml_attribute_info.update_state(
-                &basic_info.current_key,
+            state.update_state(
+                &basic_info,
                 XmlAttributesStages::Object(XmlAttributesObjectStages::KeyValFieldSeparator),
             );
         }
-        _ => state.xml_attribute_info.abort_xml_attributes(),
+        _ => state.abort_xml_attributes(),
     }
 }
 
@@ -114,14 +112,14 @@ pub fn object_attributes_stage_key_val_separator_case(
 ) {
     match char_val {
         '"' => {
-            state.xml_attribute_info.update_state(
-                &basic_info.current_key,
+            state.update_state(
+                &basic_info,
                 XmlAttributesStages::Object(XmlAttributesObjectStages::Value(
                     XmlAttributeKeyValueStages::Open(String::new()),
                 )),
             );
         }
-        _ => state.xml_attribute_info.abort_xml_attributes(),
+        _ => state.abort_xml_attributes(),
     }
 }
 
@@ -133,15 +131,15 @@ pub fn object_attributes_stage_value_open(
 ) {
     let new_val = format!("{}{}", curr_key, char_val);
     match char_val {
-        '"' => state.xml_attribute_info.update_state(
-            &basic_info.current_key,
+        '"' => state.update_state(
+            &basic_info,
             XmlAttributesStages::Object(XmlAttributesObjectStages::Value(
                 XmlAttributeKeyValueStages::Closed,
             )),
         ),
         _ => {
-            state.xml_attribute_info.update_state(
-                &basic_info.current_key,
+            state.update_state(
+                &basic_info,
                 XmlAttributesStages::Object(XmlAttributesObjectStages::Value(
                     XmlAttributeKeyValueStages::Open(new_val),
                 )),
@@ -157,13 +155,13 @@ pub fn object_attributes_stage_value_closed(
 ) {
     match char_val {
         ',' => {
-            state.xml_attribute_info.update_state(
-                &basic_info.current_key,
+            state.update_state(
+                &basic_info,
                 XmlAttributesStages::Object(XmlAttributesObjectStages::KeyValFieldSeparator),
             );
         }
         '}' => (),
-        _ => state.xml_attribute_info.abort_xml_attributes(),
+        _ => state.abort_xml_attributes(),
     }
 }
 
@@ -174,11 +172,11 @@ pub fn object_attributes_stage_key_val_field_separator(
 ) {
     match char_val {
         '{' => {
-            state.xml_attribute_info.update_state(
-                &basic_info.current_key,
+            state.update_state(
+                &basic_info,
                 XmlAttributesStages::Object(XmlAttributesObjectStages::KeyValFieldSeparator),
             );
         }
-        _ => state.xml_attribute_info.abort_xml_attributes(),
+        _ => state.abort_xml_attributes(),
     }
 }

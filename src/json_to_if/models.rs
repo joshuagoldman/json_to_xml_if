@@ -1,6 +1,9 @@
-use std::{cell::OnceCell, sync::OnceLock};
+use std::{cell::OnceCell, collections::HashMap, sync::OnceLock};
 
 use regex::Regex;
+use uuid::Uuid;
+
+use super::xml_attributes::models::{XmlAttributeState, XmlAttributesInfo};
 
 pub static IS_ALLOWED_KEY_REGEX_EXPR: OnceLock<Regex> = OnceLock::new();
 
@@ -9,6 +12,7 @@ pub struct Field {
     pub token_type: TokenType,
     pub key: Option<String>,
     pub nesting_state: NestingState,
+    pub xml_attribute_info: XmlAttributesInfo,
 }
 
 impl Field {
@@ -17,6 +21,10 @@ impl Field {
             token_type: TokenType::JsonObject(TokenStage::Opening),
             key: None,
             nesting_state: NestingState::JsonObjectNestinState,
+            xml_attribute_info: XmlAttributesInfo {
+                xml_attributes_map: HashMap::new(),
+                current_state: XmlAttributeState::NoAttributes,
+            },
         }
     }
 }
