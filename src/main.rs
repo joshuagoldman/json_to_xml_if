@@ -1,8 +1,15 @@
+use regex::Regex;
+
+use crate::json_to_if::models::IS_ALLOWED_KEY_REGEX_EXPR;
+
 pub mod if_to_json;
 pub mod json_to_if;
 
 fn main() {
-    println!("This is if_parser!")
+    println!("This is if_parser!");
+    IS_ALLOWED_KEY_REGEX_EXPR
+        .set(Regex::new(r"^[aA-zZ]").unwrap())
+        .unwrap();
 }
 
 #[cfg(test)]

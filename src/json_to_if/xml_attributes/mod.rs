@@ -6,14 +6,16 @@ use self::{
     xml_attributes_array::{
         array_attributes_stage_key_closed, array_attributes_stage_key_open,
         array_attributes_stage_key_val_field_separator,
-        array_attributes_stage_key_val_separator_case, array_attributes_stage_object_end,
-        array_attributes_stage_object_init, array_attributes_stage_object_separator,
-        array_attributes_stage_value_closed, array_attributes_stage_value_open,
+        array_attributes_stage_key_val_separator_case, array_attributes_stage_null,
+        array_attributes_stage_object_end, array_attributes_stage_object_init,
+        array_attributes_stage_object_separator, array_attributes_stage_value_closed,
+        array_attributes_stage_value_open,
     },
     xml_attributes_object::{
         object_attributes_stage_init, object_attributes_stage_key_open,
         object_attributes_stage_key_val_field_separator,
-        object_attributes_stage_key_val_separator_case, object_attributes_stage_value_open,
+        object_attributes_stage_key_val_separator_case, object_attributes_stage_null,
+        object_attributes_stage_value_open,
     },
 };
 
@@ -72,6 +74,9 @@ fn xml_attributes_state_attributes_object(
         }
         XmlAttributesObjectStages::KeyValFieldSeparator => {
             object_attributes_stage_key_val_field_separator(char_val, state, basic_info)
+        }
+        XmlAttributesObjectStages::NullValue(curr_str_val) => {
+            object_attributes_stage_null(char_val, state, basic_info, &curr_str_val)
         }
     }
 }
@@ -148,6 +153,9 @@ fn xml_attributes_state_attributes_array(
         }
         XmlAttributesArrayStages::ObjectSeparator => {
             array_attributes_stage_object_separator(char_val, state, basic_info)
+        }
+        XmlAttributesArrayStages::NullValue(curr_str_val) => {
+            array_attributes_stage_null(char_val, state, basic_info, &curr_str_val)
         }
     }
 }

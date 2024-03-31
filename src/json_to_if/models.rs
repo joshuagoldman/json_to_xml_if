@@ -1,6 +1,8 @@
+use std::{cell::OnceCell, sync::OnceLock};
+
 use regex::Regex;
 
-pub static IS_ALLOWED_KEY_REGEX_EXPR: &'static Regex = &Regex::new(r"^[aA-zZ]").unwrap();
+pub static IS_ALLOWED_KEY_REGEX_EXPR: OnceLock<Regex> = OnceLock::new();
 
 #[derive(Clone, Debug)]
 pub struct Field {

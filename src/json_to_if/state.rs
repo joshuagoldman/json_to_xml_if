@@ -1,13 +1,15 @@
 use std::collections::HashMap;
 
+use iter_tools::Itertools;
+
 use super::{
     models::{Field, NestingState, TokenStage, TokenType},
     xml_attributes::{
         self,
         models::{
-            XmlAttributeArrayinfo, XmlAttributeState, XmlAttributesArrayStages,
-            XmlAttributesBasicInfo, XmlAttributesInfo, XmlAttributesMapKey,
-            XmlAttributesObjectStages, XmlAttributesStages,
+            XmlAttributeArrayinfo, XmlAttributeObjectInfo, XmlAttributeState,
+            XmlAttributesArrayStages, XmlAttributesBasicInfo, XmlAttributesInfo,
+            XmlAttributesMapKey, XmlAttributesObjectStages, XmlAttributesStages,
         },
     },
 };
@@ -86,9 +88,9 @@ impl State {
 
     pub fn check_init_xml_attributes(&mut self) {
         let last_indx = self.fields.len() - 1;
-        let last_field = self.fields[last_indx.clone()];
+        let last_field = self.fields[last_indx.clone()].clone();
         match (
-            self.xml_attribute_info.current_state,
+            self.xml_attribute_info.current_state.clone(),
             last_field.key.clone(),
         ) {
             (XmlAttributeState::NoAttributes, Some(key)) => {
@@ -124,9 +126,12 @@ impl State {
                     .get(&attr_basic_info.current_key)
                 {
                     match xml_attr_info_type {
-                        xml_attributes::models::XmlAttributesType::ArrayTypeAttributes(_) => {
-                            todo!()
-                        }
+                        xml_attributes::models::XmlAttributesType::ArrayTypeAttributes(
+                            xml_attributees_array_info,
+                        ) => self.check_end_xml_attributes_array_handling(
+                            attr_basic_info.clone(),
+                            xml_attributees_array_info.clone(),
+                        ),
                         xml_attributes::models::XmlAttributesType::ObjectAttributes(_) => todo!(),
                         xml_attributes::models::XmlAttributesType::NoAttribute(_) => todo!(),
                     }
@@ -138,8 +143,76 @@ impl State {
 
     pub fn check_end_xml_attributes_array_handling(
         &mut self,
+        basic_info: XmlAttributesBasicInfo,
         xml_attributes_array_info: XmlAttributeArrayinfo,
     ) {
-        xml_attributes_array_info.xml_attributes_array_info
+        let xml_attibutes_vec_str = construct_xml_attributes_str_vec(&xml_attributes_array_info);
+        for (i, id) in xml_attributes_array_info.unique_key_ids.iter().enumerate() {
+            let replace_key = format!(
+                "{}_attributes_{}",
+                basic_info.current_key.attribute_base_name, id
+            );
+
+            if xml_attibutes_vec_str.len() != 0 && xml_attibutes_vec_str.len() - 1 >= i {
+                self.curr_xml = self
+                    .curr_xml
+                    .replace(replace_key.as_str(), xml_attibutes_vec_str[i].as_str())
+            } else {
+                self.curr_xml = self.curr_xml.replace(replace_key.as_str(), "")
+            }
+        }
     }
+
+    pub fn check_end_xml_attributes_object_handling(
+        &mut self,
+        basic_info: XmlAttributesBasicInfo,
+        xml_attributes_object_info: XmlAttributeObjectInfo,
+    ) {
+        let xml_attibutes_vec_str = construct_xml_attributes_str(&xml_attributes_object_info);
+        let replace_key = format!(
+            "{}_attributes_{}",
+            basic_info.current_key.attribute_base_name, xml_attributes_object_info.unique_key_id
+        );
+
+        if xml_attibutes_vec_str.len() != 0 {
+            self.curr_xml = self
+                .curr_xml
+                .replace(replace_key.as_str(), xml_attibutes_vec_str.as_str());
+        } else {
+            self.curr_xml = self.curr_xml.replace(replace_key.as_str(), "")
+        }
+    }
+}
+
+fn construct_xml_attributes_str_vec(xml_attributes_info: &XmlAttributeArrayinfo) -> Vec<String> {
+    xml_attributes_info
+        .attributes
+        .iter()
+        .map(|attr_vec| {
+            attr_vec
+                .iter()
+                .map(|attr| {
+                    format!(
+                        "{}=\"{}\"",
+                        attr.xml_atrribute_key.clone(),
+                        attr.xml_attribute_value.clone()
+                    )
+                })
+                .join(" ")
+        })
+        .collect::<Vec<String>>()
+}
+
+fn construct_xml_attributes_str(xml_attributes_info: &XmlAttributeObjectInfo) -> String {
+    xml_attributes_info
+        .attributes
+        .iter()
+        .map(|attr| {
+            format!(
+                "{}=\"{}\"",
+                attr.xml_atrribute_key.clone(),
+                attr.xml_attribute_value.clone()
+            )
+        })
+        .join(" ")
 }

@@ -32,9 +32,44 @@ pub fn array_attributes_stage_object_init(
             &basic_info.current_key.clone(),
             XmlAttributesStages::Array(XmlAttributesArrayStages::ObjectInit),
         ),
+        'n' => state.xml_attribute_info.update_state(
+            &basic_info.current_key.clone(),
+            XmlAttributesStages::Array(XmlAttributesArrayStages::NullValue("n".to_string())),
+        ),
         _ => {
             state.xml_attribute_info.abort_xml_attributes();
         }
+    }
+}
+
+pub fn array_attributes_stage_null(
+    char_val: &char,
+    state: &mut State,
+    basic_info: &XmlAttributesBasicInfo,
+    curr_str_val: &String,
+) {
+    let new_str_val = format!("{}{}", curr_str_val, char_val);
+    println!("current val is: {}", new_str_val);
+    match new_str_val == "null" {
+        true => {
+            state.xml_attribute_info.update_state(
+                &basic_info.current_key,
+                XmlAttributesStages::Array(XmlAttributesArrayStages::ObjectEnd),
+            );
+        }
+        _ => match "null".contains(new_str_val.as_str()) {
+            true => {
+                state.xml_attribute_info.update_state(
+                    &basic_info.current_key.clone(),
+                    XmlAttributesStages::Array(XmlAttributesArrayStages::NullValue(
+                        "n".to_string(),
+                    )),
+                );
+            }
+            false => {
+                state.xml_attribute_info.abort_xml_attributes();
+            }
+        },
     }
 }
 
@@ -57,7 +92,7 @@ pub fn array_attributes_stage_key_open(
                 )),
             )
         }
-        _ => match IS_ALLOWED_KEY_REGEX_EXPR.is_match(&new_val) {
+        _ => match IS_ALLOWED_KEY_REGEX_EXPR.get().unwrap().is_match(&new_val) {
             true => state.xml_attribute_info.update_state(
                 &basic_info.current_key,
                 XmlAttributesStages::Array(XmlAttributesArrayStages::Key(

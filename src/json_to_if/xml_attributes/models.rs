@@ -4,19 +4,20 @@ use crate::json_to_if::NestingState;
 
 #[derive(Debug, Clone)]
 pub struct XmlAttribute {
-    xml_atrribute_key: String,
-    xml_attribute_value: String,
+    pub xml_atrribute_key: String,
+    pub xml_attribute_value: String,
 }
 
 #[derive(Debug, Clone)]
 pub struct XmlAttributeObjectInfo {
-    attributes: Vec<XmlAttribute>,
+    pub attributes: Vec<XmlAttribute>,
+    pub unique_key_id: String,
 }
 
 #[derive(Debug, Clone)]
 pub struct XmlAttributeArrayinfo {
     pub attributes: Vec<Vec<XmlAttribute>>,
-    pub keys_amount: i32,
+    pub unique_key_ids: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -34,6 +35,7 @@ pub enum XmlAttributeKeyValueStages {
 pub enum XmlAttributesObjectStages {
     Init,
     Key(XmlAttributeKeyValueStages),
+    NullValue(String),
     KeyValSeparator,
     Value(XmlAttributeKeyValueStages),
     KeyValFieldSeparator,
@@ -45,6 +47,7 @@ pub enum XmlAttributesArrayStages {
     ObjectInit,
     Key(XmlAttributeKeyValueStages),
     KeyValSeparator,
+    NullValue(String),
     Value(XmlAttributeKeyValueStages),
     KeyValFieldSeparator,
     ObjectEnd,
