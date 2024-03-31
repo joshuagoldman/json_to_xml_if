@@ -94,4 +94,8 @@ pub struct XmlAttributesInfo {
     pub current_state: XmlAttributeState,
 }
 
-impl XmlAttributesInfo {}
+#[derive(Debug, Clone)]
+pub struct XmlAttributesUniqIds {
+    pub attr_id: String,
+    pub attr_object_id: String,
+}

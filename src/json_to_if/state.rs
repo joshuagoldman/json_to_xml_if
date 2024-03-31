@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use iter_tools::Itertools;
 use uuid::Uuid;
 
@@ -10,8 +8,8 @@ use super::{
         models::{
             XmlAttribute, XmlAttributeArrayinfo, XmlAttributeNoAttributeInfo,
             XmlAttributeObjectInfo, XmlAttributeState, XmlAttributesArrayStages,
-            XmlAttributesBasicInfo, XmlAttributesInfo, XmlAttributesMapKey,
-            XmlAttributesObjectStages, XmlAttributesStages, XmlAttributesType,
+            XmlAttributesBasicInfo, XmlAttributesMapKey, XmlAttributesObjectStages,
+            XmlAttributesStages, XmlAttributesType,
         },
     },
 };
@@ -168,15 +166,29 @@ impl State {
                 xml_attributes_object_info.unique_key_id.as_str(),
                 xml_attibutes_vec_str.as_str(),
             );
+            let found_indices = self
+                .curr_xml
+                .match_indices(xml_attributes_object_info.object_id.as_str());
+            let found_indices_ints = found_indices
+                .into_iter()
+                .map(|(indx, _)| indx)
+                .collect::<Vec<usize>>();
+            let first_part = self.curr_xml.drain(..found_indices_ints[0]);
+            let second_part = self
+                .curr_xml
+                .drain(..found_indices_ints[1] + xml_attributes_object_info.object_id.len());
         } else {
             self.curr_xml = self
                 .curr_xml
-                .replace(xml_attributes_object_info.unique_key_id.as_str(), "")
+                .replace(xml_attributes_object_info.unique_key_id.as_str(), "");
+            self.curr_xml = self
+                .curr_xml
+                .replace(xml_attributes_object_info.object_id.as_str(), "");
         }
     }
 
     pub fn check_end_xml_no_attributes_handling(&mut self, keys_info: XmlAttributeNoAttributeInfo) {
-        for (i, id) in keys_info.unique_key_ids.iter().enumerate() {
+        for (_, id) in keys_info.unique_key_ids.iter().enumerate() {
             self.curr_xml = self.curr_xml.replace(id, "")
         }
     }

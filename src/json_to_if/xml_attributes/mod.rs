@@ -23,6 +23,7 @@ use super::State;
 
 pub mod models;
 pub mod xml_attributes_array;
+pub mod xml_attributes_marking;
 pub mod xml_attributes_object;
 
 fn xml_attributes_state_object_key_stages(

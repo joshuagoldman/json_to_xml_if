@@ -1,5 +1,3 @@
-use uuid::Uuid;
-
 use self::{
     array_val::{
         array_val_json_null_case_closed, array_val_json_null_case_open,
@@ -20,7 +18,6 @@ use self::{
         TokenStageKey, TokenType,
     },
     state::State,
-    xml_attributes::models::{XmlAttributeNoAttributeInfo, XmlAttributesMapKey, XmlAttributesType},
 };
 
 pub mod array_val;
@@ -30,66 +27,6 @@ mod key_val;
 pub mod models;
 pub mod state;
 pub mod xml_attributes;
-
-fn add_attributes_mark(state: &mut State, xml_key: &String) -> String {
-    let last_indx = state.fields.len() - 1;
-    let last_field = state.fields[last_indx.clone()].clone();
-    let nesting_state = last_field.nesting_state.clone();
-    let map_key = XmlAttributesMapKey {
-        attribute_base_name: xml_key.clone(),
-        attribute_type: nesting_state,
-    };
-    let mut unique_id = String::new();
-    match state.fields[last_indx.clone()]
-        .xml_attribute_info
-        .xml_attributes_map
-        .get_mut(&map_key)
-    {
-        Some(xml_attributes_info) => match xml_attributes_info {
-            xml_attributes::models::XmlAttributesType::ArrayTypeAttributes(xml_attributes_info) => {
-                unique_id = Uuid::new_v4().to_string().clone();
-                xml_attributes_info
-                    .clone()
-                    .unique_key_ids
-                    .push(unique_id.clone());
-            }
-            xml_attributes::models::XmlAttributesType::ObjectAttributes(xml_attributes_info) => {
-                let unique_id = Uuid::new_v4().to_string();
-                xml_attributes_info.unique_key_id = unique_id;
-            }
-            xml_attributes::models::XmlAttributesType::NoAttribute(key_infos) => {
-                unique_id = Uuid::new_v4().to_string();
-                key_infos.unique_key_ids.push(unique_id.clone());
-            }
-        },
-        None => {
-            unique_id = Uuid::new_v4().to_string();
-            let map_key_obj = XmlAttributesMapKey {
-                attribute_base_name: xml_key.clone(),
-                attribute_type: NestingState::JsonObjectNestinState,
-            };
-            let map_key_arr = XmlAttributesMapKey {
-                attribute_base_name: xml_key.clone(),
-                attribute_type: NestingState::JsonObjectNestinState,
-            };
-            let new_id_vec = vec![unique_id.to_string()];
-            let new_key_infos = XmlAttributesType::NoAttribute(XmlAttributeNoAttributeInfo {
-                unique_key_ids: new_id_vec,
-            });
-            state.fields[last_indx.clone()]
-                .clone()
-                .xml_attribute_info
-                .xml_attributes_map
-                .insert(map_key_obj, new_key_infos.clone());
-            state.fields[last_indx.clone()]
-                .clone()
-                .xml_attribute_info
-                .xml_attributes_map
-                .insert(map_key_arr, new_key_infos);
-        }
-    }
-    unique_id
-}
 
 fn add_open_tag(state: &mut State, indent: bool) {
     state.curr_indent += 1;

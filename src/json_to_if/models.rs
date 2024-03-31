@@ -1,7 +1,6 @@
-use std::{cell::OnceCell, collections::HashMap, sync::OnceLock};
+use std::{collections::HashMap, sync::OnceLock};
 
 use regex::Regex;
-use uuid::Uuid;
 
 use super::xml_attributes::models::{XmlAttributeState, XmlAttributesInfo};
 
