@@ -1,7 +1,7 @@
 use self::{
     models::{
         XmlAttributeKeyValueStages, XmlAttributeState, XmlAttributesArrayStages,
-        XmlAttributesBasicInfo, XmlAttributesObjectStages,
+        XmlAttributesBasicInfo, XmlAttributesMapKey, XmlAttributesObjectStages, XmlAttributesType,
     },
     xml_attributes_array::{
         array_attributes_stage_key_closed, array_attributes_stage_key_open,
@@ -22,9 +22,11 @@ use self::{
 use super::State;
 
 pub mod models;
+mod xml_attributes_abort;
 pub mod xml_attributes_array;
 pub mod xml_attributes_marking;
 pub mod xml_attributes_object;
+mod xml_attributes_object_id;
 
 fn xml_attributes_state_object_key_stages(
     char_val: &char,
@@ -177,7 +179,7 @@ fn xml_attributes_state_attributes(
     }
 }
 
-fn xml_attributes_check_state(
+pub fn xml_attributes_check_state(
     char_val: &char,
     state: &mut State,
     basic_info: &XmlAttributesBasicInfo,
@@ -193,4 +195,38 @@ fn xml_attributes_check_state(
             xml_attributes_state_attributes(char_val, state, basic_info, attributes_info)
         }
     }
+}
+
+pub fn get_attributes_type_mut<'a>(
+    state: &'a mut State,
+    xml_key: &String,
+) -> Option<&'a mut XmlAttributesType> {
+    let parent_index = state.fields.len() - 2;
+    let last_index = state.fields.len() - 1;
+    let last_field = state.fields[last_index.clone()].clone();
+    let nesting_state = last_field.nesting_state.clone();
+    let map_key = XmlAttributesMapKey {
+        attribute_base_name: xml_key.clone(),
+        attribute_type: nesting_state,
+    };
+    state.fields[parent_index.clone()]
+        .xml_attribute_info
+        .xml_attributes_map
+        .get_mut(&map_key)
+}
+
+fn get_attributes_type<'a>(state: &mut State, xml_key: &String) -> Option<XmlAttributesType> {
+    let parent_index = state.fields.len() - 2;
+    let last_index = state.fields.len() - 1;
+    let last_field = state.fields[last_index.clone()].clone();
+    let nesting_state = last_field.nesting_state.clone();
+    let map_key = XmlAttributesMapKey {
+        attribute_base_name: xml_key.clone(),
+        attribute_type: nesting_state,
+    };
+    state.fields[parent_index.clone()]
+        .xml_attribute_info
+        .xml_attributes_map
+        .get(&map_key)
+        .cloned()
 }

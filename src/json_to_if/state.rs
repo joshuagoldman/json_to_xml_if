@@ -146,9 +146,10 @@ impl State {
         xml_attributes_array_info: XmlAttributeArrayinfo,
     ) {
         let xml_attibutes_vec_str = construct_xml_attributes_str_vec(&xml_attributes_array_info);
+        remove_str_chunk_by_key(&mut self.curr_xml, &xml_attributes_array_info.object_id);
         for (i, id) in xml_attributes_array_info.unique_key_ids.iter().enumerate() {
             if xml_attibutes_vec_str.len() != 0 && xml_attibutes_vec_str.len() - 1 >= i {
-                self.curr_xml = self.curr_xml.replace(id, xml_attibutes_vec_str[i].as_str())
+                self.curr_xml = self.curr_xml.replace(id, xml_attibutes_vec_str[i].as_str());
             } else {
                 self.curr_xml = self.curr_xml.replace(id, "")
             }
@@ -166,17 +167,7 @@ impl State {
                 xml_attributes_object_info.unique_key_id.as_str(),
                 xml_attibutes_vec_str.as_str(),
             );
-            let found_indices = self
-                .curr_xml
-                .match_indices(xml_attributes_object_info.object_id.as_str());
-            let found_indices_ints = found_indices
-                .into_iter()
-                .map(|(indx, _)| indx)
-                .collect::<Vec<usize>>();
-            let first_part = self.curr_xml.drain(..found_indices_ints[0]);
-            let second_part = self
-                .curr_xml
-                .drain(..found_indices_ints[1] + xml_attributes_object_info.object_id.len());
+            remove_str_chunk_by_key(&mut self.curr_xml, &xml_attributes_object_info.object_id);
         } else {
             self.curr_xml = self
                 .curr_xml
@@ -331,4 +322,17 @@ fn construct_xml_attributes_str(xml_attributes_info: &XmlAttributeObjectInfo) ->
             )
         })
         .join(" ")
+}
+
+fn remove_str_chunk_by_key(str_val: &mut String, str_key: &String) {
+    let found_indices = str_val.match_indices(str_key);
+    let found_indices_ints = found_indices
+        .into_iter()
+        .map(|(indx, _)| indx)
+        .collect::<Vec<usize>>();
+    *str_val = str_val
+        .chars()
+        .take(found_indices_ints[0])
+        .chain(str_val.chars().skip(found_indices_ints[1]))
+        .collect();
 }
