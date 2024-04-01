@@ -18,7 +18,7 @@ use self::{
         TokenStageKey, TokenType,
     },
     state::State,
-    xml_attributes::xml_attributes_marking::get_attributes_mark,
+    xml_attributes::{xml_attributes_check_state, xml_attributes_marking::get_attributes_mark},
 };
 
 pub mod array_val;
@@ -188,12 +188,12 @@ fn token_type_json_array_decision(
     }
 }
 
-fn e_det_tomt_varde_for_i_helvete_javla_fittsugarkuk(char_val: &char) -> bool {
+fn is_val_empty(char_val: &char) -> bool {
     vec![' ', '\t', '\r'].iter().any(|x| x == char_val)
 }
 
 fn json_val_open_case_char_empty_val(char_val: &char, state: &mut State) -> bool {
-    if !e_det_tomt_varde_for_i_helvete_javla_fittsugarkuk(char_val) {
+    if !is_val_empty(char_val) {
         return false;
     }
     match state.fields[state.fields.len() - 1].token_type.clone() {
@@ -220,7 +220,7 @@ fn to_if_req_single(char_val: &char, state: &mut State) {
     }
 
     if state.fields.len() == 0 {
-        if e_det_tomt_varde_for_i_helvete_javla_fittsugarkuk(char_val) {
+        if is_val_empty(char_val) {
             return;
         }
 
@@ -238,6 +238,8 @@ fn to_if_req_single(char_val: &char, state: &mut State) {
         state.fields.push(field);
         return;
     }
+
+    xml_attributes_check_state(char_val, state);
 
     if json_val_open_case_char_empty_val(char_val, state) {
         return;

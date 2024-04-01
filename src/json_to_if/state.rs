@@ -143,6 +143,7 @@ impl State {
                 }
             }
         }
+        self.xml_attributes = None;
     }
 
     pub fn update_state(&mut self, curr_stage: XmlAttributesStages) {

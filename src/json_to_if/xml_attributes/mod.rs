@@ -30,6 +30,38 @@ pub mod xml_attributes_object;
 pub mod xml_attributes_object_id;
 pub mod xml_attributes_update;
 
+pub fn get_attributes_type_mut<'a>(
+    state: &'a mut State,
+    xml_key: &String,
+) -> Option<&'a mut XmlAttributesType> {
+    let parent_index = state.fields.len() - 2;
+    let last_index = state.fields.len() - 1;
+    let last_field = state.fields[last_index.clone()].clone();
+    let nesting_state = last_field.nesting_state.clone();
+    let map_key = XmlAttributesMapKey {
+        attribute_base_name: xml_key.clone(),
+        attribute_type: nesting_state,
+    };
+    state.fields[parent_index.clone()]
+        .xml_attributes_map
+        .get_mut(&map_key)
+}
+
+fn get_attributes_type<'a>(state: &mut State, xml_key: &String) -> Option<XmlAttributesType> {
+    let parent_index = state.fields.len() - 2;
+    let last_index = state.fields.len() - 1;
+    let last_field = state.fields[last_index.clone()].clone();
+    let nesting_state = last_field.nesting_state.clone();
+    let map_key = XmlAttributesMapKey {
+        attribute_base_name: xml_key.clone(),
+        attribute_type: nesting_state,
+    };
+    state.fields[parent_index.clone()]
+        .xml_attributes_map
+        .get(&map_key)
+        .cloned()
+}
+
 fn xml_attributes_state_object_key_stages(
     char_val: &char,
     state: &mut State,
@@ -157,36 +189,4 @@ pub fn xml_attributes_check_state(char_val: &char, state: &mut State) {
         Some(attributes_info) => xml_attributes_state_attributes(char_val, state, attributes_info),
         None => (),
     }
-}
-
-pub fn get_attributes_type_mut<'a>(
-    state: &'a mut State,
-    xml_key: &String,
-) -> Option<&'a mut XmlAttributesType> {
-    let parent_index = state.fields.len() - 2;
-    let last_index = state.fields.len() - 1;
-    let last_field = state.fields[last_index.clone()].clone();
-    let nesting_state = last_field.nesting_state.clone();
-    let map_key = XmlAttributesMapKey {
-        attribute_base_name: xml_key.clone(),
-        attribute_type: nesting_state,
-    };
-    state.fields[parent_index.clone()]
-        .xml_attributes_map
-        .get_mut(&map_key)
-}
-
-fn get_attributes_type<'a>(state: &mut State, xml_key: &String) -> Option<XmlAttributesType> {
-    let parent_index = state.fields.len() - 2;
-    let last_index = state.fields.len() - 1;
-    let last_field = state.fields[last_index.clone()].clone();
-    let nesting_state = last_field.nesting_state.clone();
-    let map_key = XmlAttributesMapKey {
-        attribute_base_name: xml_key.clone(),
-        attribute_type: nesting_state,
-    };
-    state.fields[parent_index.clone()]
-        .xml_attributes_map
-        .get(&map_key)
-        .cloned()
 }
