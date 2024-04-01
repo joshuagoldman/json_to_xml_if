@@ -2,9 +2,7 @@ use iter_tools::Itertools;
 
 use crate::json_to_if::state::State;
 
-use super::
-    models::{XmlAttributeArrayinfo, XmlAttributeNoAttributeInfo, XmlAttributeObjectInfo}
-;
+use super::models::{XmlAttributeArrayinfo, XmlAttributeNoAttributeInfo, XmlAttributeObjectInfo};
 
 pub fn check_end_xml_attributes_array_handling(
     state: &mut State,
@@ -62,11 +60,15 @@ fn construct_xml_attributes_str_vec(xml_attributes_info: &XmlAttributeArrayinfo)
             attr_vec
                 .iter()
                 .map(|attr| {
-                    format!(
-                        "{}=\"{}\"",
-                        attr.xml_atrribute_key.clone(),
-                        attr.xml_attribute_value.clone()
-                    )
+                    if attr.xml_atrribute_key.is_empty() {
+                        String::new()
+                    } else {
+                        format!(
+                            "{}=\"{}\"",
+                            attr.xml_atrribute_key.clone(),
+                            attr.xml_attribute_value.clone()
+                        )
+                    }
                 })
                 .join(" ")
         })
@@ -78,11 +80,15 @@ fn construct_xml_attributes_str(xml_attributes_info: &XmlAttributeObjectInfo) ->
         .attributes
         .iter()
         .map(|attr| {
-            format!(
-                "{}=\"{}\"",
-                attr.xml_atrribute_key.clone(),
-                attr.xml_attribute_value.clone()
-            )
+            if attr.xml_atrribute_key.is_empty() {
+                String::new()
+            } else {
+                format!(
+                    "{}=\"{}\"",
+                    attr.xml_atrribute_key.clone(),
+                    attr.xml_attribute_value.clone()
+                )
+            }
         })
         .join(" ")
 }

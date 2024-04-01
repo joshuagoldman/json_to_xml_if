@@ -33,6 +33,7 @@ pub fn array_attributes_stage_null(char_val: &char, state: &mut State, curr_str_
     println!("current val is: {}", new_str_val);
     match new_str_val == "null" {
         true => {
+            state.update_xml_attribute_key(&String::new());
             state.update_state(XmlAttributesStages::Array(
                 XmlAttributesArrayStages::ObjectEnd,
             ));
