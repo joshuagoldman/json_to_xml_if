@@ -1,7 +1,7 @@
 use self::{
     models::{
-        XmlAttributeKeyValueStages, XmlAttributeState, XmlAttributesArrayStages,
-        XmlAttributesBasicInfo, XmlAttributesMapKey, XmlAttributesObjectStages, XmlAttributesType,
+        XmlAttributeKeyValueStages, XmlAttributesArrayStages, XmlAttributesBasicInfo,
+        XmlAttributesMapKey, XmlAttributesObjectStages, XmlAttributesType,
     },
     xml_attributes_array::{
         array_attributes_stage_key_closed, array_attributes_stage_key_open,
@@ -22,21 +22,22 @@ use self::{
 use super::State;
 
 pub mod models;
-mod xml_attributes_abort;
+pub mod xml_attributes_abort;
 pub mod xml_attributes_array;
+pub mod xml_attributes_end;
 pub mod xml_attributes_marking;
 pub mod xml_attributes_object;
-mod xml_attributes_object_id;
+pub mod xml_attributes_object_id;
+pub mod xml_attributes_update;
 
 fn xml_attributes_state_object_key_stages(
     char_val: &char,
     state: &mut State,
-    basic_info: &XmlAttributesBasicInfo,
     key_val_stages: XmlAttributeKeyValueStages,
 ) {
     match key_val_stages {
         XmlAttributeKeyValueStages::Open(str_val) => {
-            object_attributes_stage_key_open(char_val, state, basic_info, &str_val)
+            object_attributes_stage_key_open(char_val, state, &str_val)
         }
         XmlAttributeKeyValueStages::Closed => todo!(),
     }
@@ -45,12 +46,11 @@ fn xml_attributes_state_object_key_stages(
 fn xml_attributes_state_object_val_stages(
     char_val: &char,
     state: &mut State,
-    basic_info: &XmlAttributesBasicInfo,
     val_stages: XmlAttributeKeyValueStages,
 ) {
     match val_stages {
         XmlAttributeKeyValueStages::Open(str_val) => {
-            object_attributes_stage_value_open(char_val, state, basic_info, &str_val)
+            object_attributes_stage_value_open(char_val, state, &str_val)
         }
         XmlAttributeKeyValueStages::Closed => todo!(),
     }
@@ -59,27 +59,24 @@ fn xml_attributes_state_object_val_stages(
 fn xml_attributes_state_attributes_object(
     char_val: &char,
     state: &mut State,
-    basic_info: &XmlAttributesBasicInfo,
     object_stages: XmlAttributesObjectStages,
 ) {
     match object_stages {
-        XmlAttributesObjectStages::Init => {
-            object_attributes_stage_init(char_val, state, basic_info)
-        }
+        XmlAttributesObjectStages::Init => object_attributes_stage_init(char_val, state),
         XmlAttributesObjectStages::Key(key_val_stages) => {
-            xml_attributes_state_object_key_stages(char_val, state, basic_info, key_val_stages)
+            xml_attributes_state_object_key_stages(char_val, state, key_val_stages)
         }
         XmlAttributesObjectStages::KeyValSeparator => {
-            object_attributes_stage_key_val_separator_case(char_val, state, basic_info)
+            object_attributes_stage_key_val_separator_case(char_val, state)
         }
         XmlAttributesObjectStages::Value(val_stages) => {
-            xml_attributes_state_object_val_stages(char_val, state, basic_info, val_stages)
+            xml_attributes_state_object_val_stages(char_val, state, val_stages)
         }
         XmlAttributesObjectStages::KeyValFieldSeparator => {
-            object_attributes_stage_key_val_field_separator(char_val, state, basic_info)
+            object_attributes_stage_key_val_field_separator(char_val, state)
         }
         XmlAttributesObjectStages::NullValue(curr_str_val) => {
-            object_attributes_stage_null(char_val, state, basic_info, &curr_str_val)
+            object_attributes_stage_null(char_val, state, &curr_str_val)
         }
     }
 }
@@ -87,78 +84,55 @@ fn xml_attributes_state_attributes_object(
 fn xml_attributes_state_array_key_stages(
     char_val: &char,
     state: &mut State,
-    basic_info: &XmlAttributesBasicInfo,
     key_val_stages: XmlAttributeKeyValueStages,
 ) {
     match key_val_stages {
         XmlAttributeKeyValueStages::Open(str_val) => {
-            array_attributes_stage_key_open(char_val, state, basic_info, &str_val)
+            array_attributes_stage_key_open(char_val, state, &str_val)
         }
-        XmlAttributeKeyValueStages::Closed => {
-            array_attributes_stage_key_closed(char_val, state, basic_info)
-        }
+        XmlAttributeKeyValueStages::Closed => array_attributes_stage_key_closed(char_val, state),
     }
 }
 
 fn xml_attributes_state_array_val_stages(
     char_val: &char,
     state: &mut State,
-    basic_info: &XmlAttributesBasicInfo,
     val_stages: XmlAttributeKeyValueStages,
 ) {
     match val_stages {
         XmlAttributeKeyValueStages::Open(str_val) => {
-            array_attributes_stage_value_open(char_val, state, basic_info, &str_val)
+            array_attributes_stage_value_open(char_val, state, &str_val)
         }
-        XmlAttributeKeyValueStages::Closed => {
-            array_attributes_stage_value_closed(char_val, state, basic_info)
-        }
+        XmlAttributeKeyValueStages::Closed => array_attributes_stage_value_closed(char_val, state),
     }
 }
 
 fn xml_attributes_state_attributes_array(
     char_val: &char,
     state: &mut State,
-    basic_info: &XmlAttributesBasicInfo,
     array_stages: XmlAttributesArrayStages,
 ) {
     match array_stages {
-        XmlAttributesArrayStages::Init => {
-            array_attributes_stage_object_init(char_val, state, basic_info)
-        }
-        XmlAttributesArrayStages::ObjectInit => {
-            array_attributes_stage_object_init(char_val, state, basic_info)
-        }
+        XmlAttributesArrayStages::Init => array_attributes_stage_object_init(char_val, state),
+        XmlAttributesArrayStages::ObjectInit => array_attributes_stage_object_init(char_val, state),
         XmlAttributesArrayStages::Key(xml_attribute_key_stage) => {
-            xml_attributes_state_array_key_stages(
-                char_val,
-                state,
-                basic_info,
-                xml_attribute_key_stage,
-            )
+            xml_attributes_state_array_key_stages(char_val, state, xml_attribute_key_stage)
         }
         XmlAttributesArrayStages::KeyValSeparator => {
-            array_attributes_stage_key_val_separator_case(char_val, state, basic_info)
+            array_attributes_stage_key_val_separator_case(char_val, state)
         }
         XmlAttributesArrayStages::Value(xml_attributes_val_stages) => {
-            xml_attributes_state_array_val_stages(
-                char_val,
-                state,
-                basic_info,
-                xml_attributes_val_stages,
-            )
+            xml_attributes_state_array_val_stages(char_val, state, xml_attributes_val_stages)
         }
         XmlAttributesArrayStages::KeyValFieldSeparator => {
-            array_attributes_stage_key_val_field_separator(char_val, state, basic_info)
+            array_attributes_stage_key_val_field_separator(char_val, state)
         }
-        XmlAttributesArrayStages::ObjectEnd => {
-            array_attributes_stage_object_end(char_val, state, basic_info)
-        }
+        XmlAttributesArrayStages::ObjectEnd => array_attributes_stage_object_end(char_val, state),
         XmlAttributesArrayStages::ObjectSeparator => {
-            array_attributes_stage_object_separator(char_val, state, basic_info)
+            array_attributes_stage_object_separator(char_val, state)
         }
         XmlAttributesArrayStages::NullValue(curr_str_val) => {
-            array_attributes_stage_null(char_val, state, basic_info, &curr_str_val)
+            array_attributes_stage_null(char_val, state, &curr_str_val)
         }
     }
 }
@@ -166,34 +140,22 @@ fn xml_attributes_state_attributes_array(
 fn xml_attributes_state_attributes(
     char_val: &char,
     state: &mut State,
-    basic_info: &XmlAttributesBasicInfo,
     attributes_info: XmlAttributesBasicInfo,
 ) {
     match attributes_info.curr_stage {
         models::XmlAttributesStages::Array(array_stages) => {
-            xml_attributes_state_attributes_array(char_val, state, basic_info, array_stages)
+            xml_attributes_state_attributes_array(char_val, state, array_stages)
         }
         models::XmlAttributesStages::Object(object_stages) => {
-            xml_attributes_state_attributes_object(char_val, state, basic_info, object_stages)
+            xml_attributes_state_attributes_object(char_val, state, object_stages)
         }
     }
 }
 
-pub fn xml_attributes_check_state(
-    char_val: &char,
-    state: &mut State,
-    basic_info: &XmlAttributesBasicInfo,
-) {
-    let last_index = state.fields.len() - 1;
-    match state.fields[last_index.clone()]
-        .xml_attribute_info
-        .current_state
-        .clone()
-    {
-        XmlAttributeState::NoAttributes => (),
-        XmlAttributeState::Attributes(attributes_info) => {
-            xml_attributes_state_attributes(char_val, state, basic_info, attributes_info)
-        }
+pub fn xml_attributes_check_state(char_val: &char, state: &mut State) {
+    match state.xml_attributes.clone() {
+        Some(attributes_info) => xml_attributes_state_attributes(char_val, state, attributes_info),
+        None => (),
     }
 }
 
@@ -210,7 +172,6 @@ pub fn get_attributes_type_mut<'a>(
         attribute_type: nesting_state,
     };
     state.fields[parent_index.clone()]
-        .xml_attribute_info
         .xml_attributes_map
         .get_mut(&map_key)
 }
@@ -225,7 +186,6 @@ fn get_attributes_type<'a>(state: &mut State, xml_key: &String) -> Option<XmlAtt
         attribute_type: nesting_state,
     };
     state.fields[parent_index.clone()]
-        .xml_attribute_info
         .xml_attributes_map
         .get(&map_key)
         .cloned()

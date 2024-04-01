@@ -33,7 +33,6 @@ fn get_atrributes_object_id_case_no_attr_arr(
         attributes: Vec::new(),
     });
     state.fields[parent_index.clone()]
-        .xml_attribute_info
         .xml_attributes_map
         .insert(map_key_obj, array_attributes_info.clone());
 
@@ -60,7 +59,6 @@ fn get_atrributes_object_id_case_no_attr_obj(
         attributes: Vec::new(),
     });
     state.fields[parent_index.clone()]
-        .xml_attribute_info
         .xml_attributes_map
         .insert(map_key_obj, object_attributes_info.clone());
 
@@ -87,7 +85,6 @@ fn get_atrributes_object_id_case_not_in_dict_arr(
         attributes: Vec::new(),
     });
     state.fields[parent_index.clone()]
-        .xml_attribute_info
         .xml_attributes_map
         .insert(map_key_obj, object_attributes_info.clone());
     Some(XmlAttributesUniqIds {
@@ -114,7 +111,6 @@ fn get_atrributes_object_id_case_not_in_dict_obj(
         attributes: Vec::new(),
     });
     state.fields[parent_index.clone()]
-        .xml_attribute_info
         .xml_attributes_map
         .insert(map_key_obj, array_attributes_info.clone());
     Some(XmlAttributesUniqIds {
@@ -127,9 +123,6 @@ pub fn get_attributes_object_id(
     state: &mut State,
     xml_key: &String,
 ) -> Option<XmlAttributesUniqIds> {
-    if !xml_key.to_uppercase().ends_with("_ATTRIBUTES") || state.fields.len() < 2 {
-        return None;
-    }
     let last_indx = state.fields.len() - 1;
     let nesting_state = state.fields[last_indx].nesting_state.clone();
     match (get_attributes_type(state, xml_key), nesting_state) {

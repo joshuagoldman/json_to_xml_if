@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::OnceLock};
 
 use regex::Regex;
 
-use super::xml_attributes::models::{XmlAttributeState, XmlAttributesInfo};
+use super::xml_attributes::models::{XmlAttributesMapKey, XmlAttributesType};
 
 pub static IS_ALLOWED_KEY_REGEX_EXPR: OnceLock<Regex> = OnceLock::new();
 
@@ -11,7 +11,7 @@ pub struct Field {
     pub token_type: TokenType,
     pub key: Option<String>,
     pub nesting_state: NestingState,
-    pub xml_attribute_info: XmlAttributesInfo,
+    pub xml_attributes_map: HashMap<XmlAttributesMapKey, XmlAttributesType>,
 }
 
 impl Field {
@@ -20,10 +20,7 @@ impl Field {
             token_type: TokenType::JsonObject(TokenStage::Opening),
             key: None,
             nesting_state: NestingState::JsonObjectNestinState,
-            xml_attribute_info: XmlAttributesInfo {
-                xml_attributes_map: HashMap::new(),
-                current_state: XmlAttributeState::NoAttributes,
-            },
+            xml_attributes_map: HashMap::new(),
         }
     }
 }

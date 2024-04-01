@@ -14,6 +14,9 @@ fn abort_attributes_case_obj(
     xml_key: &String,
     xml_attr_info: XmlAttributeObjectInfo,
 ) {
+    if state.fields.len() < 2 {
+        return;
+    }
     let parent_index = state.fields.len() - 2;
     let map_key_obj = XmlAttributesMapKey {
         attribute_base_name: xml_key.clone(),
@@ -23,7 +26,6 @@ fn abort_attributes_case_obj(
         unique_key_ids: vec![xml_attr_info.unique_key_id.clone()],
     });
     state.fields[parent_index.clone()]
-        .xml_attribute_info
         .xml_attributes_map
         .insert(map_key_obj, attr_new_info.clone());
 }
@@ -42,7 +44,6 @@ fn abort_attributes_case_attr(
         unique_key_ids: xml_attr_info.unique_key_ids.clone(),
     });
     state.fields[parent_index.clone()]
-        .xml_attribute_info
         .xml_attributes_map
         .insert(map_key_obj, attr_new_info.clone());
 }

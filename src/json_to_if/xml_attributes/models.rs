@@ -77,7 +77,6 @@ pub struct XmlAttributesMapKey {
 
 #[derive(Debug, Clone)]
 pub struct XmlAttributesBasicInfo {
-    pub attibutes_unique_id: String,
     pub current_key: XmlAttributesMapKey,
     pub curr_stage: XmlAttributesStages,
 }

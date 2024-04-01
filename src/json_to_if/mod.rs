@@ -18,6 +18,7 @@ use self::{
         TokenStageKey, TokenType,
     },
     state::State,
+    xml_attributes::xml_attributes_marking::get_attributes_mark,
 };
 
 pub mod array_val;
@@ -43,7 +44,17 @@ fn add_open_tag(state: &mut State, indent: bool) {
     } else {
         "".to_string()
     };
-    state.curr_xml = format!("{}{}<{}>", state.curr_xml, indentation_str, key);
+
+    if let Some(ids_info) = state.check_init_xml_attributes() {
+        state.curr_xml = format!(
+            "{}{}{}<{} {}>",
+            state.curr_xml, indentation_str, ids_info.attr_object_id, key, ids_info.attr_id
+        );
+    } else if let Some(attr_id) = get_attributes_mark(state, &key) {
+        state.curr_xml = format!("{}{}<{} {}>", state.curr_xml, indentation_str, key, attr_id);
+    } else {
+        state.curr_xml = format!("{}{}<{}>", state.curr_xml, indentation_str, key);
+    }
 }
 
 fn add_close_tag(state: &mut State, indent: bool) {

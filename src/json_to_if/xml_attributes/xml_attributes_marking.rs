@@ -60,11 +60,9 @@ fn get_attr_mark_case_not_reg(state: &mut State, xml_key: &String) -> Option<Str
         unique_key_ids: new_id_vec,
     });
     state.fields[parent_index.clone()]
-        .xml_attribute_info
         .xml_attributes_map
         .insert(map_key_obj, new_key_infos.clone());
     state.fields[parent_index.clone()]
-        .xml_attribute_info
         .xml_attributes_map
         .insert(map_key_arr, new_key_infos);
 
