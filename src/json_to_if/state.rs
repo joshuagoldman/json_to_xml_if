@@ -11,7 +11,9 @@ use super::{
             check_end_xml_attributes_array_handling, check_end_xml_attributes_object_handling,
             check_end_xml_no_attributes_handling,
         },
-        xml_attributes_object_id::get_attributes_object_id,
+        xml_attributes_object_id::{
+            get_attributes_object_id, get_attributes_object_id_for_closing_tag,
+        },
         xml_attributes_update::{update_xml_attribute_key, update_xml_attribute_value},
     },
 };
@@ -117,6 +119,26 @@ impl State {
                     });
 
                     get_attributes_object_id(self, &key)
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
+    }
+
+    pub fn get_obj_id_for_closing_tag(&mut self) -> Option<String> {
+        let last_indx = self.fields.len() - 1;
+        let last_field = self.fields[last_indx.clone()].clone();
+        match (self.xml_attributes.clone(), last_field.key.clone()) {
+            (None, Some(key)) => {
+                if key.to_uppercase().ends_with("_ATTRIBUTES") {
+                    let xml_key_base = ATTRIBUTES_REGEX_EXPR
+                        .get()
+                        .unwrap()
+                        .replace(key.as_str(), "");
+
+                    get_attributes_object_id_for_closing_tag(self, &xml_key_base.to_string())
                 } else {
                     None
                 }

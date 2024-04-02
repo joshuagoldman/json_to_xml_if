@@ -18,7 +18,10 @@ use self::{
         TokenStageKey, TokenType,
     },
     state::State,
-    xml_attributes::{xml_attributes_check_state, xml_attributes_marking::get_attributes_mark},
+    xml_attributes::{
+        xml_attributes_check_state, xml_attributes_marking::get_attributes_mark,
+        xml_attributes_object_id::get_attributes_object_id_for_closing_tag,
+    },
 };
 
 pub mod array_val;
@@ -77,6 +80,16 @@ fn add_close_tag(state: &mut State, indent: bool) {
         "".to_string()
     };
     state.curr_xml = format!("{}{}</{}>", state.curr_xml, indentation_str, key);
+    let parent_index = state.fields.len() - 2;
+    if state.fields.len() > 1 {
+        if let NestingState::JsonArrayNestingState = state.fields[parent_index].nesting_state {
+            state.curr_xml = format!("{}{}</{}>", state.curr_xml, indentation_str, key);
+        }
+    } else if let Some(obj_id) = state.get_obj_id_for_closing_tag() {
+        state.curr_xml = format!("{}{}</{}>{}", state.curr_xml, indentation_str, key, obj_id);
+    } else {
+        state.curr_xml = format!("{}{}</{}>", state.curr_xml, indentation_str, key);
+    }
     state.curr_indent -= 1;
 }
 

@@ -143,3 +143,19 @@ pub fn get_attributes_object_id(
         _ => None,
     }
 }
+
+pub fn get_attributes_object_id_for_closing_tag(
+    state: &mut State,
+    xml_key: &String,
+) -> Option<String> {
+    let last_indx = state.fields.len() - 1;
+    let nesting_state = state.fields[last_indx].nesting_state.clone();
+    match get_attributes_type(state, xml_key) {
+        Some(xml_attr_type) => match xml_attr_type {
+            XmlAttributesType::ArrayTypeAttributes(xml_attr_info) => Some(xml_attr_info.object_id),
+            XmlAttributesType::ObjectAttributes(xml_attr_info) => Some(xml_attr_info.object_id),
+            XmlAttributesType::NoAttribute(_) => None,
+        },
+        None => None,
+    }
+}
