@@ -1,6 +1,6 @@
 use regex::Regex;
 
-use crate::json_to_if::models::IS_ALLOWED_KEY_REGEX_EXPR;
+use crate::json_to_if::models::{ATTRIBUTES_REGEX_EXPR, IS_ALLOWED_KEY_REGEX_EXPR};
 
 pub mod if_to_json;
 pub mod json_to_if;
@@ -9,6 +9,9 @@ fn main() {
     println!("This is if_parser!");
     IS_ALLOWED_KEY_REGEX_EXPR
         .set(Regex::new(r"^[aA-zZ]").unwrap())
+        .unwrap();
+    ATTRIBUTES_REGEX_EXPR
+        .set(Regex::new(r"_(A|a)(T|t)(T|t)(R|r)(I|i)(B|b)(U|u)(T|t)(E|e)(S|s)$").unwrap())
         .unwrap();
 }
 
@@ -19,7 +22,7 @@ mod tests {
 
     use crate::{
         if_to_json::{if_to_json, Node, NodeStrResult, State, XmlAttribute},
-        json_to_if::to_if_req,
+        json_to_if::{to_if_req, xml_attributes::xml_attributes_end::remove_str_chunk_by_key},
     };
 
     #[test]
@@ -108,5 +111,16 @@ mod tests {
         json_arr_file.write_all(json_arr.as_bytes()).unwrap();
         json_obj_file.write_all(json_obj.as_bytes()).unwrap();
         assert!(true)
+    }
+
+    #[test]
+    fn test_removal_str_chunk_between_guids() {
+        let mut test_str = include_str!("./embedded_resources/str_removal_test.txt")
+            .trim()
+            .to_string();
+        let guid = uuid::Uuid::new_v4().to_string();
+        test_str = test_str.replace("[GUID]", guid.as_str());
+        remove_str_chunk_by_key(&mut test_str, &guid);
+        assert_eq!(test_str, "JoshuaGoldman")
     }
 }

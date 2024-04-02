@@ -1,5 +1,5 @@
 use super::{
-    models::{Field, NestingState, TokenStage, TokenType},
+    models::{Field, NestingState, TokenStage, TokenType, ATTRIBUTES_REGEX_EXPR},
     xml_attributes::{
         self,
         models::{
@@ -95,9 +95,13 @@ impl State {
         match (self.xml_attributes.clone(), last_field.key.clone()) {
             (None, Some(key)) => {
                 if key.to_uppercase().ends_with("_ATTRIBUTES") {
+                    let xml_key_base = ATTRIBUTES_REGEX_EXPR
+                        .get()
+                        .unwrap()
+                        .replace(key.as_str(), "");
                     let map_key = XmlAttributesMapKey {
                         attribute_type: last_field.nesting_state.clone(),
-                        attribute_base_name: key.clone(),
+                        attribute_base_name: xml_key_base.to_string(),
                     };
 
                     let curr_stage =
@@ -156,9 +160,13 @@ impl State {
     }
 
     pub fn abort_xml_attributes(&mut self) {
-        let last_index = self.fields.len() - 1;
+        if self.fields.len() < 2 {
+            return;
+        }
+
+        let parent_index = self.fields.len() - 2;
         self.xml_attributes = None;
-        if let Some(xml_key) = self.fields[last_index.clone()].key.clone() {
+        if let Some(xml_key) = self.fields[parent_index].key.clone() {
             abort_attributes(self, &xml_key)
         }
     }

@@ -45,7 +45,12 @@ fn add_open_tag(state: &mut State, indent: bool) {
         "".to_string()
     };
 
-    if let Some(ids_info) = state.check_init_xml_attributes() {
+    let parent_index = state.fields.len() - 2;
+    if state.fields.len() > 1 {
+        if let NestingState::JsonArrayNestingState = state.fields[parent_index].nesting_state {
+            state.curr_xml = format!("{}{}<{}>", state.curr_xml, indentation_str, key);
+        }
+    } else if let Some(ids_info) = state.check_init_xml_attributes() {
         state.curr_xml = format!(
             "{}{}{}<{} {}>",
             state.curr_xml, indentation_str, ids_info.attr_object_id, key, ids_info.attr_id

@@ -5,6 +5,7 @@ use regex::Regex;
 use super::xml_attributes::models::{XmlAttributesMapKey, XmlAttributesType};
 
 pub static IS_ALLOWED_KEY_REGEX_EXPR: OnceLock<Regex> = OnceLock::new();
+pub static ATTRIBUTES_REGEX_EXPR: OnceLock<Regex> = OnceLock::new();
 
 #[derive(Clone, Debug)]
 pub struct Field {

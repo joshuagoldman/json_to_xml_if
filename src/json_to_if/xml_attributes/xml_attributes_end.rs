@@ -93,7 +93,7 @@ fn construct_xml_attributes_str(xml_attributes_info: &XmlAttributeObjectInfo) ->
         .join(" ")
 }
 
-fn remove_str_chunk_by_key(str_val: &mut String, str_key: &String) {
+pub fn remove_str_chunk_by_key(str_val: &mut String, str_key: &String) {
     let found_indices = str_val.match_indices(str_key);
     let found_indices_ints = found_indices
         .into_iter()
@@ -102,6 +102,6 @@ fn remove_str_chunk_by_key(str_val: &mut String, str_key: &String) {
     *str_val = str_val
         .chars()
         .take(found_indices_ints[0])
-        .chain(str_val.chars().skip(found_indices_ints[1]))
+        .chain(str_val.chars().skip(found_indices_ints[1] + str_key.len()))
         .collect();
 }
