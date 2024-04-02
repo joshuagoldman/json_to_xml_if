@@ -18,10 +18,7 @@ use self::{
         TokenStageKey, TokenType,
     },
     state::State,
-    xml_attributes::{
-        xml_attributes_check_state, xml_attributes_marking::get_attributes_mark,
-        xml_attributes_object_id::get_attributes_object_id_for_closing_tag,
-    },
+    xml_attributes::{xml_attributes_check_state, xml_attributes_marking::get_attributes_mark},
 };
 
 pub mod array_val;

@@ -94,14 +94,22 @@ fn construct_xml_attributes_str(xml_attributes_info: &XmlAttributeObjectInfo) ->
 }
 
 pub fn remove_str_chunk_by_key(str_val: &mut String, str_key: &String) {
-    let found_indices = str_val.match_indices(str_key);
-    let found_indices_ints = found_indices
+    let mut found_indices = str_val.match_indices(str_key);
+    let mut found_indices_ints = found_indices
         .into_iter()
         .map(|(indx, _)| indx)
         .collect::<Vec<usize>>();
-    *str_val = str_val
-        .chars()
-        .take(found_indices_ints[0])
-        .chain(str_val.chars().skip(found_indices_ints[1] + str_key.len()))
-        .collect();
+
+    while found_indices_ints.len() > 1 {
+        *str_val = str_val
+            .chars()
+            .take(found_indices_ints[0])
+            .chain(str_val.chars().skip(found_indices_ints[1] + str_key.len()))
+            .collect();
+        found_indices = str_val.match_indices(str_key);
+        found_indices_ints = found_indices
+            .into_iter()
+            .map(|(indx, _)| indx)
+            .collect::<Vec<usize>>();
+    }
 }

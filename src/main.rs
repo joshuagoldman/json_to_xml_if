@@ -121,6 +121,6 @@ mod tests {
         let guid = uuid::Uuid::new_v4().to_string();
         test_str = test_str.replace("[GUID]", guid.as_str());
         remove_str_chunk_by_key(&mut test_str, &guid);
-        assert_eq!(test_str, "JoshuaGoldman")
+        assert_eq!(test_str, "JoshuaPaulGoldmanIsMyFullName")
     }
 }
