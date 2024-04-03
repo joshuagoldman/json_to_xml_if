@@ -1,64 +1,46 @@
-use crate::json_to_if::{
-    models::NestingState,
-    state::State,
-    xml_attributes::models::{XmlAttributesMapKey, XmlAttributesType},
-};
+use crate::json_to_if::{state::State, xml_attributes::models::XmlAttributesType};
 
 use super::{
-    get_attributes_type,
-    models::{XmlAttributeArrayinfo, XmlAttributeNoAttributeInfo, XmlAttributeObjectInfo},
+    get_attributes_type_mut,
+    models::{
+        XmlAttributeArrayinfo, XmlAttributeNoAttributeInfo, XmlAttributeObjectInfo,
+        XmlAttributesBasicInfo,
+    },
 };
 
 fn abort_attributes_case_obj(
-    state: &mut State,
-    xml_key: &String,
-    xml_attr_info: XmlAttributeObjectInfo,
+    xml_attr_type: &mut XmlAttributesType,
+    xml_attr_info: &XmlAttributeObjectInfo,
 ) {
-    if state.fields.len() < 2 {
-        return;
-    }
-    let parent_index = state.fields.len() - 2;
-    let map_key_obj = XmlAttributesMapKey {
-        attribute_base_name: xml_key.clone(),
-        attribute_type: NestingState::JsonObjectNestinState,
-    };
-    let attr_new_info = XmlAttributesType::NoAttribute(XmlAttributeNoAttributeInfo {
+    let obj_new_info = XmlAttributesType::NoAttribute(XmlAttributeNoAttributeInfo {
         unique_key_ids: vec![xml_attr_info.unique_key_id.clone()],
     });
-    state.fields[parent_index.clone()]
-        .xml_attributes_map
-        .insert(map_key_obj, attr_new_info.clone());
+
+    *xml_attr_type = obj_new_info;
 }
 
 fn abort_attributes_case_attr(
-    state: &mut State,
-    xml_key: &String,
-    xml_attr_info: XmlAttributeArrayinfo,
+    xml_attr_type: &mut XmlAttributesType,
+    xml_attr_info: &XmlAttributeArrayinfo,
 ) {
-    let parent_index = state.fields.len() - 2;
-    let map_key_obj = XmlAttributesMapKey {
-        attribute_base_name: xml_key.clone(),
-        attribute_type: NestingState::JsonObjectNestinState,
-    };
     let attr_new_info = XmlAttributesType::NoAttribute(XmlAttributeNoAttributeInfo {
         unique_key_ids: xml_attr_info.unique_key_ids.clone(),
     });
-    state.fields[parent_index.clone()]
-        .xml_attributes_map
-        .insert(map_key_obj, attr_new_info.clone());
+
+    *xml_attr_type = attr_new_info;
 }
 
-pub fn abort_attributes(state: &mut State, xml_key: &String) {
-    if state.fields.len() < 2 {
-        return;
-    }
-    match get_attributes_type(state, xml_key) {
-        Some(XmlAttributesType::ObjectAttributes(xml_attr_info)) => {
-            abort_attributes_case_obj(state, xml_key, xml_attr_info)
-        }
-        Some(XmlAttributesType::ArrayTypeAttributes(xml_attr_info)) => {
-            abort_attributes_case_attr(state, xml_key, xml_attr_info)
-        }
-        _ => (),
+pub fn abort_attributes(state: &mut State, basic_info: &XmlAttributesBasicInfo) {
+    match get_attributes_type_mut(state, basic_info) {
+        Some(xml_attr_type) => match xml_attr_type.clone() {
+            XmlAttributesType::ObjectAttributes(xml_attr_info) => {
+                abort_attributes_case_obj(xml_attr_type, &xml_attr_info)
+            }
+            XmlAttributesType::ArrayTypeAttributes(xml_attr_info) => {
+                abort_attributes_case_attr(xml_attr_type, &xml_attr_info)
+            }
+            _ => (),
+        },
+        None => todo!(),
     }
 }

@@ -12,7 +12,7 @@ pub fn json_array_open_case(char_val: &char, state: &mut State) {
             state.update_nesting_state(NestingState::JsonArrayNestingState);
             add_open_tag(state, true);
 
-            let mut field = Field::new();
+            let mut field = Field::new(&mut state.xml_attributes_map);
             field.key = state.fields[state.fields.len() - 1].key.clone();
             state.fields.push(field);
             state.update_token_type(TokenType::JsonArray(TokenStage::Content(
@@ -21,7 +21,7 @@ pub fn json_array_open_case(char_val: &char, state: &mut State) {
         }
         '{' => {
             state.update_nesting_state(NestingState::JsonArrayNestingState);
-            let mut field = Field::new();
+            let mut field = Field::new(&mut state.xml_attributes_map);
             field.key = state.fields[state.fields.len() - 1].key.clone();
             state.fields.push(field);
             state.check_init_xml_attributes();
@@ -35,7 +35,7 @@ pub fn json_array_open_case(char_val: &char, state: &mut State) {
         'n' => {
             state.update_nesting_state(NestingState::JsonArrayNestingState);
             add_open_tag(state, true);
-            state.fields.push(Field::new());
+            state.fields.push(Field::new(&mut state.xml_attributes_map));
 
             state.update_token_type(TokenType::JsonArray(TokenStage::Content(
                 ArrayValType::Null(JsonNull::Open("n".to_string())),
@@ -58,6 +58,7 @@ pub fn json_array_closed_case(char_val: &char, state: &mut State) {
     match char_val {
         '}' => {
             add_close_tag(state, true);
+            state.check_end_xml_attributes();
             state.fields.pop();
             state.update_to_closed_state();
         }
@@ -74,7 +75,7 @@ pub fn json_array_item_separator_case(char_val: &char, state: &mut State) {
         '"' => {
             add_open_tag(state, true);
 
-            let mut field = Field::new();
+            let mut field = Field::new(&mut state.xml_attributes_map);
             field.key = state.fields[state.fields.len() - 1].key.clone();
             state.fields.push(field);
             state.update_token_type(TokenType::JsonArray(TokenStage::Content(
@@ -82,7 +83,7 @@ pub fn json_array_item_separator_case(char_val: &char, state: &mut State) {
             )));
         }
         '{' => {
-            let mut field = Field::new();
+            let mut field = Field::new(&mut state.xml_attributes_map);
             field.key = state.fields[state.fields.len() - 1].key.clone();
             state.fields.push(field);
 
@@ -91,7 +92,7 @@ pub fn json_array_item_separator_case(char_val: &char, state: &mut State) {
         'n' => {
             add_open_tag(state, true);
 
-            let mut field = Field::new();
+            let mut field = Field::new(&mut state.xml_attributes_map);
             field.key = state.fields[state.fields.len() - 1].key.clone();
             state.fields.push(field);
             state.update_token_type(TokenType::JsonArray(TokenStage::Content(
@@ -101,7 +102,7 @@ pub fn json_array_item_separator_case(char_val: &char, state: &mut State) {
         _ => match char_val.to_digit(RADIX) {
             Some(_) => {
                 add_open_tag(state, true);
-                let mut field = Field::new();
+                let mut field = Field::new(&mut state.xml_attributes_map);
                 field.key = state.fields[state.fields.len() - 1].key.clone();
                 state.fields.push(field);
 

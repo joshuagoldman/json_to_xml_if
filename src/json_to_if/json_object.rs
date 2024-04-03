@@ -10,7 +10,7 @@ pub fn json_object_open_case(char_val: &char, state: &mut State) {
             add_open_tag(state, true);
             state.update_nesting_state(NestingState::JsonObjectNestinState);
 
-            state.fields.push(Field::new());
+            state.fields.push(Field::new(&mut state.xml_attributes_map));
             state.update_token_type(TokenType::JsonObject(TokenStage::Content(
                 KeyValState::KeyState(TokenStageKey::Opening),
             )));
@@ -18,6 +18,7 @@ pub fn json_object_open_case(char_val: &char, state: &mut State) {
         '}' => {
             add_open_tag(state, true);
             add_close_tag(state, true);
+            state.check_end_xml_attributes();
             state.fields.pop();
 
             state.update_token_type(TokenType::JsonObject(TokenStage::Closing));
@@ -27,7 +28,6 @@ pub fn json_object_open_case(char_val: &char, state: &mut State) {
 }
 
 pub fn json_object_closed_case(char_val: &char, state: &mut State) {
-    state.check_end_xml_attributes();
     match char_val {
         ']' => {
             state.fields.pop();
@@ -49,7 +49,7 @@ pub fn json_object_closed_case(char_val: &char, state: &mut State) {
 pub fn json_object_item_separator_case(char_val: &char, state: &mut State) {
     match char_val {
         '"' => {
-            state.fields.push(Field::new());
+            state.fields.push(Field::new(&mut state.xml_attributes_map));
             state.update_token_type(TokenType::JsonObject(TokenStage::Content(
                 KeyValState::KeyState(TokenStageKey::Opening),
             )));

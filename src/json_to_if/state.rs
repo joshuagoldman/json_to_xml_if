@@ -1,10 +1,13 @@
+use std::collections::HashMap;
+
 use super::{
     models::{Field, NestingState, TokenStage, TokenType, ATTRIBUTES_REGEX_EXPR},
     xml_attributes::{
         self,
         models::{
             XmlAttributesArrayStages, XmlAttributesBasicInfo, XmlAttributesMapKey,
-            XmlAttributesObjectStages, XmlAttributesStages, XmlAttributesUniqIds,
+            XmlAttributesObjectStages, XmlAttributesStages, XmlAttributesType,
+            XmlAttributesUniqIds,
         },
         xml_attributes_abort::abort_attributes,
         xml_attributes_end::{
@@ -14,7 +17,7 @@ use super::{
         xml_attributes_object_id::{
             get_attributes_object_id, get_attributes_object_id_for_closing_tag,
         },
-        xml_attributes_update::{update_xml_attribute_key, update_xml_attribute_value},
+        xml_attributes_update::update_xml_attribute_value,
     },
 };
 
@@ -25,6 +28,7 @@ pub struct State {
     pub curr_row_num: i32,
     pub curr_indent: i32,
     pub xml_attributes: Option<XmlAttributesBasicInfo>,
+    pub xml_attributes_map: HashMap<String, HashMap<XmlAttributesMapKey, XmlAttributesType>>,
 }
 
 impl State {
@@ -35,6 +39,7 @@ impl State {
             curr_row_num: 1,
             curr_indent: 0,
             xml_attributes: None,
+            xml_attributes_map: HashMap::new(),
         }
     }
 
@@ -105,7 +110,6 @@ impl State {
                         attribute_type: last_field.nesting_state.clone(),
                         attribute_base_name: xml_key_base.to_string(),
                     };
-
                     let curr_stage =
                         if let NestingState::JsonObjectNestinState = last_field.nesting_state {
                             XmlAttributesStages::Object(XmlAttributesObjectStages::Init)
@@ -113,12 +117,14 @@ impl State {
                             XmlAttributesStages::Array(XmlAttributesArrayStages::Init)
                         };
 
-                    self.xml_attributes = Some(XmlAttributesBasicInfo {
+                    let basic_info = XmlAttributesBasicInfo {
                         current_key: map_key,
                         curr_stage,
-                    });
+                        attr_id: last_field.xml_attributes_map_id.clone(),
+                    };
+                    self.xml_attributes = Some(basic_info.clone());
 
-                    get_attributes_object_id(self, &key)
+                    get_attributes_object_id(self, &basic_info)
                 } else {
                     None
                 }
@@ -128,48 +134,45 @@ impl State {
     }
 
     pub fn get_obj_id_for_closing_tag(&mut self) -> Option<String> {
-        let last_indx = self.fields.len() - 1;
-        let last_field = self.fields[last_indx.clone()].clone();
-        match (self.xml_attributes.clone(), last_field.key.clone()) {
-            (None, Some(key)) => {
-                if key.to_uppercase().ends_with("_ATTRIBUTES") {
-                    let xml_key_base = ATTRIBUTES_REGEX_EXPR
-                        .get()
-                        .unwrap()
-                        .replace(key.as_str(), "");
-
-                    get_attributes_object_id_for_closing_tag(self, &xml_key_base.to_string())
-                } else {
-                    None
-                }
-            }
+        match self.xml_attributes.clone() {
+            Some(xml_attr_info) => get_attributes_object_id_for_closing_tag(self, &xml_attr_info),
             _ => None,
         }
     }
 
     pub fn check_end_xml_attributes(&mut self) {
         let last_indx = self.fields.len() - 1;
-        let last_field = self.fields[last_indx.clone()].clone();
-        for (_, (_, xml_attr_info_type)) in last_field.xml_attributes_map.iter().enumerate() {
-            match xml_attr_info_type {
-                xml_attributes::models::XmlAttributesType::ArrayTypeAttributes(
-                    xml_attributees_array_info,
-                ) => check_end_xml_attributes_array_handling(
-                    self,
-                    xml_attributees_array_info.clone(),
-                ),
-                xml_attributes::models::XmlAttributesType::ObjectAttributes(
-                    xml_attributes_object_info,
-                ) => check_end_xml_attributes_object_handling(
-                    self,
-                    xml_attributes_object_info.clone(),
-                ),
-                xml_attributes::models::XmlAttributesType::NoAttribute(keys_info) => {
-                    check_end_xml_no_attributes_handling(self, keys_info.clone())
+        let last_field = self.fields[last_indx].clone();
+        match self
+            .xml_attributes_map
+            .clone()
+            .get(&last_field.xml_attributes_map_id)
+        {
+            Some(att_map) => {
+                for (_, (_, xml_attr_info_type)) in att_map.iter().enumerate() {
+                    match xml_attr_info_type {
+                        xml_attributes::models::XmlAttributesType::ArrayTypeAttributes(
+                            xml_attributees_array_info,
+                        ) => check_end_xml_attributes_array_handling(
+                            self,
+                            xml_attributees_array_info.clone(),
+                        ),
+                        xml_attributes::models::XmlAttributesType::ObjectAttributes(
+                            xml_attributes_object_info,
+                        ) => check_end_xml_attributes_object_handling(
+                            self,
+                            xml_attributes_object_info.clone(),
+                        ),
+                        xml_attributes::models::XmlAttributesType::NoAttribute(keys_info) => {
+                            check_end_xml_no_attributes_handling(self, keys_info.clone())
+                        }
+                    }
                 }
             }
+            None => (),
         }
-        self.xml_attributes = None;
+        self.xml_attributes_map
+            .remove(&last_field.xml_attributes_map_id);
     }
 
     pub fn update_state(&mut self, curr_stage: XmlAttributesStages) {
@@ -177,27 +180,26 @@ impl State {
             self.xml_attributes = Some(XmlAttributesBasicInfo {
                 curr_stage,
                 current_key: xml_attribtues_basic_info.current_key,
+                attr_id: xml_attribtues_basic_info.attr_id,
             })
         }
     }
 
     pub fn abort_xml_attributes(&mut self) {
-        if self.fields.len() < 2 {
-            return;
-        }
-
-        let parent_index = self.fields.len() - 2;
-        self.xml_attributes = None;
-        if let Some(xml_key) = self.fields[parent_index].key.clone() {
-            abort_attributes(self, &xml_key)
+        if let Some(xml_attr_basic_info) = self.xml_attributes.clone() {
+            abort_attributes(self, &xml_attr_basic_info)
         }
     }
 
     pub fn update_xml_attribute_key(&mut self, xml_atrribute_key: &String) {
-        update_xml_attribute_key(self, xml_atrribute_key)
+        if let Some(basic_info) = self.xml_attributes.clone() {
+            update_xml_attribute_value(self, &basic_info, xml_atrribute_key)
+        }
     }
 
     pub fn update_xml_attribute_value(&mut self, xml_atrribute_value: &String) {
-        update_xml_attribute_value(self, xml_atrribute_value)
+        if let Some(basic_info) = self.xml_attributes.clone() {
+            update_xml_attribute_value(self, &basic_info, xml_atrribute_value)
+        }
     }
 }

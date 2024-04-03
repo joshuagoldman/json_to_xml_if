@@ -183,10 +183,6 @@ impl State {
 
         tabs_as_str
     }
-
-    // fn print(&mut self) {
-    //     print!("{:#?}", self);
-    // }
 }
 
 fn xml_attribute_stage_key_decision(

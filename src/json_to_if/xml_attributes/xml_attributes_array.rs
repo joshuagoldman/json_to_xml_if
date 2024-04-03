@@ -30,7 +30,6 @@ pub fn array_attributes_stage_object_init(char_val: &char, state: &mut State) {
 
 pub fn array_attributes_stage_null(char_val: &char, state: &mut State, curr_str_val: &String) {
     let new_str_val = format!("{}{}", curr_str_val, char_val);
-    println!("current val is: {}", new_str_val);
     match new_str_val == "null" {
         true => {
             state.update_xml_attribute_key(&String::new());
@@ -96,9 +95,12 @@ pub fn array_attributes_stage_key_val_separator_case(char_val: &char, state: &mu
 pub fn array_attributes_stage_value_open(char_val: &char, state: &mut State, curr_key: &String) {
     let new_val = format!("{}{}", curr_key, char_val);
     match char_val {
-        '"' => state.update_state(XmlAttributesStages::Array(XmlAttributesArrayStages::Value(
-            XmlAttributeKeyValueStages::Closed,
-        ))),
+        '"' => {
+            state.update_xml_attribute_value(curr_key);
+            state.update_state(XmlAttributesStages::Array(XmlAttributesArrayStages::Value(
+                XmlAttributeKeyValueStages::Closed,
+            )))
+        }
         _ => {
             state.update_state(XmlAttributesStages::Array(XmlAttributesArrayStages::Value(
                 XmlAttributeKeyValueStages::Open(new_val),

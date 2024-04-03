@@ -111,6 +111,7 @@ pub fn key_val_json_str_close_case(char_val: &char, state: &mut State) {
         }
         '}' => {
             add_close_tag(state, true);
+            state.check_end_xml_attributes();
             state.fields.pop();
             state.update_to_closed_state();
         }
@@ -134,6 +135,7 @@ pub fn key_val_json_number_open_case(char_val: &char, state: &mut State, json_nu
             state.fields.pop();
 
             add_close_tag(state, true);
+            state.check_end_xml_attributes();
             state.fields.pop();
             state.update_to_closed_state();
         }
@@ -150,7 +152,6 @@ pub fn key_val_json_number_open_case(char_val: &char, state: &mut State, json_nu
 
 pub fn key_val_json_null_case_open(char_val: &char, state: &mut State, curr_str_val: &String) {
     let new_str_val = format!("{}{}", curr_str_val, char_val);
-    println!("current val is: {}", new_str_val);
     match new_str_val == "null" {
         true => {
             add_tag_val(state, &"null".to_string());
@@ -158,6 +159,7 @@ pub fn key_val_json_null_case_open(char_val: &char, state: &mut State, curr_str_
             state.fields.pop();
 
             add_close_tag(state, true);
+            state.check_end_xml_attributes();
             state.update_token_type(TokenType::JsonObject(TokenStage::Content(
                 KeyValState::ValState(KeyValType::Null(JsonNull::Closing)),
             )));
@@ -179,7 +181,6 @@ pub fn key_val_json_null_case_closed(char_val: &char, state: &mut State) {
             state.update_to_item_separate_state();
         }
         '}' => {
-            add_close_tag(state, true);
             state.fields.pop();
             state.update_to_closed_state();
         }

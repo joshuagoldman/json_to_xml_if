@@ -18,13 +18,21 @@
     },
     {
       "name": "Alice Williams",
-      "age": null
+      "age": null,
+      "age_attributes": {
+        "namn": ["s"],
+        "yrke": "Snuspetare"
+      },
+      "name_attributes": {
+        "namn": "Niclas",
+        "yrke": "Snuspetare"
+      }
     },
     null
   ],
   "preferences": {
     "music": [null, "pop"],
     "movies": ["action", "comedy"],
-    "colors": ["blue", "green"]
+    "colors": ["blue", null]
   }
 }

@@ -1,9 +1,12 @@
 use crate::json_to_if::{
     state::State,
-    xml_attributes::models::{XmlAttributesMapKey, XmlAttributesType},
+    xml_attributes::models::XmlAttributesType,
 };
 
-use super::models::{XmlAttribute, XmlAttributeArrayinfo, XmlAttributeObjectInfo};
+use super::{
+    get_attributes_type_mut,
+    models::{XmlAttribute, XmlAttributeArrayinfo, XmlAttributeObjectInfo, XmlAttributesBasicInfo},
+};
 
 fn update_xmlattribute_key_arr(
     xml_atrribute_key: &String,
@@ -45,24 +48,14 @@ pub fn update_xml_attribute_key_found_entry(
     }
 }
 
-pub fn update_xml_attribute_key(state: &mut State, xml_atrribute_key: &String) {
-    let last_index = state.fields.len() - 1;
-    let nesting_state = state.fields[last_index.clone()].nesting_state.clone();
-    let key = if let Some(some_key) = state.fields[last_index.clone()].key.clone() {
-        some_key
-    } else {
-        String::new()
-    };
-    let map_key = XmlAttributesMapKey {
-        attribute_type: nesting_state,
-        attribute_base_name: key,
-    };
-    match state.fields[last_index.clone()]
-        .xml_attributes_map
-        .get_mut(&map_key)
-    {
+pub fn update_xml_attribute_key(
+    state: &mut State,
+    basic_info: &XmlAttributesBasicInfo,
+    xml_atrribute_key: &String,
+) {
+    match get_attributes_type_mut(state, &basic_info.clone()) {
         Some(xml_attributes_info) => {
-            update_xml_attribute_key_found_entry(xml_atrribute_key, xml_attributes_info)
+            update_xml_attribute_key_found_entry(xml_atrribute_key, xml_attributes_info);
         }
         None => (),
     }
@@ -110,27 +103,14 @@ pub fn update_xml_attribute_val_found_entry(
     }
 }
 
-pub fn update_xml_attribute_value(state: &mut State, xml_atrribute_value: &String) {
-    let last_index = state.fields.len() - 1;
-    let nesting_state = state.fields[last_index.clone()].nesting_state.clone();
-
-    let key: String;
-    if let Some(some_key) = state.fields[last_index.clone()].key.clone() {
-        key = some_key;
-    } else {
-        return;
-    }
-
-    let map_key = XmlAttributesMapKey {
-        attribute_type: nesting_state,
-        attribute_base_name: key,
-    };
-    match state.fields[last_index.clone()]
-        .xml_attributes_map
-        .get_mut(&map_key)
-    {
+pub fn update_xml_attribute_value(
+    state: &mut State,
+    basic_info: &XmlAttributesBasicInfo,
+    xml_atrribute_value: &String,
+) {
+    match get_attributes_type_mut(state, &basic_info) {
         Some(xml_attributes_info) => {
-            update_xml_attribute_val_found_entry(xml_atrribute_value, xml_attributes_info)
+            update_xml_attribute_val_found_entry(xml_atrribute_value, xml_attributes_info);
         }
         None => (),
     }

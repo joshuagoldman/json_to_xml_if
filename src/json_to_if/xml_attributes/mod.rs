@@ -1,7 +1,7 @@
 use self::{
     models::{
         XmlAttributeKeyValueStages, XmlAttributesArrayStages, XmlAttributesBasicInfo,
-        XmlAttributesMapKey, XmlAttributesObjectStages, XmlAttributesType,
+        XmlAttributesObjectStages, XmlAttributesType,
     },
     xml_attributes_array::{
         array_attributes_stage_key_closed, array_attributes_stage_key_open,
@@ -12,10 +12,10 @@ use self::{
         array_attributes_stage_value_open,
     },
     xml_attributes_object::{
-        object_attributes_stage_init, object_attributes_stage_key_open,
-        object_attributes_stage_key_val_field_separator,
+        object_attributes_stage_init, object_attributes_stage_key_closed,
+        object_attributes_stage_key_open, object_attributes_stage_key_val_field_separator,
         object_attributes_stage_key_val_separator_case, object_attributes_stage_null,
-        object_attributes_stage_value_open,
+        object_attributes_stage_value_closed, object_attributes_stage_value_open,
     },
 };
 
@@ -30,36 +30,24 @@ pub mod xml_attributes_object;
 pub mod xml_attributes_object_id;
 pub mod xml_attributes_update;
 
-pub fn get_attributes_type_mut<'a>(
+fn get_attributes_type<'a>(
     state: &'a mut State,
-    xml_key: &String,
-) -> Option<&'a mut XmlAttributesType> {
-    let parent_index = state.fields.len() - 2;
-    let last_index = state.fields.len() - 1;
-    let last_field = state.fields[last_index.clone()].clone();
-    let nesting_state = last_field.nesting_state.clone();
-    let map_key = XmlAttributesMapKey {
-        attribute_base_name: xml_key.clone(),
-        attribute_type: nesting_state,
-    };
-    state.fields[parent_index.clone()]
-        .xml_attributes_map
-        .get_mut(&map_key)
+    basic_info: &XmlAttributesBasicInfo,
+) -> Option<&'a XmlAttributesType> {
+    match state.xml_attributes_map.get(&basic_info.attr_id) {
+        Some(found_attr_map) => found_attr_map.get(&basic_info.current_key),
+        None => None,
+    }
 }
 
-fn get_attributes_type<'a>(state: &mut State, xml_key: &String) -> Option<XmlAttributesType> {
-    let parent_index = state.fields.len() - 2;
-    let last_index = state.fields.len() - 1;
-    let last_field = state.fields[last_index.clone()].clone();
-    let nesting_state = last_field.nesting_state.clone();
-    let map_key = XmlAttributesMapKey {
-        attribute_base_name: xml_key.clone(),
-        attribute_type: nesting_state,
-    };
-    state.fields[parent_index.clone()]
-        .xml_attributes_map
-        .get(&map_key)
-        .cloned()
+fn get_attributes_type_mut<'a>(
+    state: &'a mut State,
+    basic_info: &XmlAttributesBasicInfo,
+) -> Option<&'a mut XmlAttributesType> {
+    match state.xml_attributes_map.get_mut(&basic_info.attr_id) {
+        Some(found_attr_map) => found_attr_map.get_mut(&basic_info.current_key),
+        None => None,
+    }
 }
 
 fn xml_attributes_state_object_key_stages(
@@ -71,7 +59,7 @@ fn xml_attributes_state_object_key_stages(
         XmlAttributeKeyValueStages::Open(str_val) => {
             object_attributes_stage_key_open(char_val, state, &str_val)
         }
-        XmlAttributeKeyValueStages::Closed => todo!(),
+        XmlAttributeKeyValueStages::Closed => object_attributes_stage_key_closed(char_val, state),
     }
 }
 
@@ -84,7 +72,7 @@ fn xml_attributes_state_object_val_stages(
         XmlAttributeKeyValueStages::Open(str_val) => {
             object_attributes_stage_value_open(char_val, state, &str_val)
         }
-        XmlAttributeKeyValueStages::Closed => todo!(),
+        XmlAttributeKeyValueStages::Closed => object_attributes_stage_value_closed(char_val, state),
     }
 }
 

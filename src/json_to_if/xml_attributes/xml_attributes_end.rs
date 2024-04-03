@@ -26,6 +26,7 @@ pub fn check_end_xml_attributes_object_handling(
     xml_attributes_object_info: XmlAttributeObjectInfo,
 ) {
     let xml_attibutes_vec_str = construct_xml_attributes_str(&xml_attributes_object_info);
+    println!("{:#?}", xml_attibutes_vec_str);
 
     if xml_attibutes_vec_str.len() != 0 {
         state.curr_xml = state.curr_xml.replace(
@@ -34,9 +35,10 @@ pub fn check_end_xml_attributes_object_handling(
         );
         remove_str_chunk_by_key(&mut state.curr_xml, &xml_attributes_object_info.object_id);
     } else {
-        state.curr_xml = state
-            .curr_xml
-            .replace(xml_attributes_object_info.unique_key_id.as_str(), "");
+        state.curr_xml = state.curr_xml.replace(
+            format!(" {}", xml_attributes_object_info.unique_key_id).as_str(),
+            "",
+        );
         state.curr_xml = state
             .curr_xml
             .replace(xml_attributes_object_info.object_id.as_str(), "");
@@ -48,7 +50,7 @@ pub fn check_end_xml_no_attributes_handling(
     keys_info: XmlAttributeNoAttributeInfo,
 ) {
     for (_, id) in keys_info.unique_key_ids.iter().enumerate() {
-        state.curr_xml = state.curr_xml.replace(id, "")
+        state.curr_xml = state.curr_xml.replace(format!(" {}", id).as_str(), "")
     }
 }
 

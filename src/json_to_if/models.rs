@@ -12,16 +12,18 @@ pub struct Field {
     pub token_type: TokenType,
     pub key: Option<String>,
     pub nesting_state: NestingState,
-    pub xml_attributes_map: HashMap<XmlAttributesMapKey, XmlAttributesType>,
+    pub xml_attributes_map_id: String,
 }
 
 impl Field {
-    pub fn new() -> Self {
+    pub fn new(map: &mut HashMap<String, HashMap<XmlAttributesMapKey, XmlAttributesType>>) -> Self {
+        let id = uuid::Uuid::new_v4().to_string();
+        map.insert(id.clone(), HashMap::new());
         Self {
             token_type: TokenType::JsonObject(TokenStage::Opening),
             key: None,
             nesting_state: NestingState::JsonObjectNestinState,
-            xml_attributes_map: HashMap::new(),
+            xml_attributes_map_id: id,
         }
     }
 }

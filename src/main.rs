@@ -20,13 +20,25 @@ mod tests {
 
     use std::{fs::File, io::Write};
 
+    use regex::Regex;
+
     use crate::{
         if_to_json::{if_to_json, Node, NodeStrResult, State, XmlAttribute},
-        json_to_if::{to_if_req, xml_attributes::xml_attributes_end::remove_str_chunk_by_key},
+        json_to_if::{
+            models::{ATTRIBUTES_REGEX_EXPR, IS_ALLOWED_KEY_REGEX_EXPR},
+            to_if_req,
+            xml_attributes::xml_attributes_end::remove_str_chunk_by_key,
+        },
     };
 
     #[test]
     fn test_parse_to_soap_xml() {
+        IS_ALLOWED_KEY_REGEX_EXPR
+            .set(Regex::new(r"^[aA-zZ]").unwrap())
+            .unwrap();
+        ATTRIBUTES_REGEX_EXPR
+            .set(Regex::new(r"_(A|a)(T|t)(T|t)(R|r)(I|i)(B|b)(U|u)(T|t)(E|e)(S|s)$").unwrap())
+            .unwrap();
         let json = include_str!("./embedded_resources/json_example.json");
         let result = to_if_req(&json.to_string());
 

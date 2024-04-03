@@ -30,6 +30,7 @@ pub fn array_val_json_str_close_case(char_val: &char, state: &mut State) {
         ',' => state.update_to_item_separate_state(),
         ']' => {
             state.fields.pop();
+            state.check_end_xml_attributes();
             state.update_to_closed_state();
         }
         _ => unexpected_character_error(char_val, state),
@@ -98,6 +99,7 @@ pub fn array_val_json_null_case_closed(char_val: &char, state: &mut State) {
         ',' => state.update_to_item_separate_state(),
         ']' => {
             state.fields.pop();
+            state.check_end_xml_attributes();
             state.update_to_closed_state();
         }
         _ => unexpected_character_error(char_val, state),
