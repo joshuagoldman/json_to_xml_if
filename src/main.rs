@@ -130,9 +130,18 @@ mod tests {
         let mut test_str = include_str!("./embedded_resources/str_removal_test.txt")
             .trim()
             .to_string();
-        let guid = uuid::Uuid::new_v4().to_string();
-        test_str = test_str.replace("[GUID]", guid.as_str());
-        remove_str_chunk_by_key(&mut test_str, &guid);
-        assert_eq!(test_str, "JoshuaPaulGoldmanIsMyFullName")
+        let test_str_expected = include_str!("./embedded_resources/str_removal_test_expected.txt")
+            .trim()
+            .to_string();
+        remove_str_chunk_by_key(
+            &mut test_str,
+            &"7e73e5cf-bdf0-4b52-a236-2a41e9561d12".to_string(),
+        );
+
+        let mut file = File::create("/home/joshua/Public/Tests/comparison_2_xml.xml").unwrap();
+        file.write_all(format!("{}\n\n\n{}", test_str.trim(), test_str_expected.trim()).as_bytes())
+            .unwrap();
+
+        assert_eq!(test_str.trim(), test_str_expected.trim())
     }
 }

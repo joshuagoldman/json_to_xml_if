@@ -43,6 +43,7 @@ fn get_attr_mark_case_not_reg(
     let new_id_vec = vec![unique_id.to_string()];
     let new_key_infos = XmlAttributesType::NoAttribute(XmlAttributeNoAttributeInfo {
         unique_key_ids: new_id_vec,
+        object_id: None,
     });
 
     match state.xml_attributes_map.get_mut(attr_id) {

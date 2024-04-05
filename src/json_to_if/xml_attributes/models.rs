@@ -25,6 +25,7 @@ pub struct XmlAttributeArrayinfo {
 #[derive(Debug, Clone)]
 pub struct XmlAttributeNoAttributeInfo {
     pub unique_key_ids: Vec<String>,
+    pub object_id: Option<String>,
 }
 
 #[derive(Debug, Clone)]

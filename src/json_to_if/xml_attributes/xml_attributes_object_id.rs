@@ -51,7 +51,7 @@ fn get_atrributes_object_id_case_no_attr_obj(
 
     Some(XmlAttributesUniqIds {
         attr_id: xml_attr_info.clone().unique_key_ids[0].clone(),
-        attr_object_id: object_id.clone(),
+        attr_object_id: object_id,
     })
 }
 
@@ -109,11 +109,11 @@ pub fn get_attributes_object_id(
     state: &mut State,
     basic_info: &XmlAttributesBasicInfo,
 ) -> Option<XmlAttributesUniqIds> {
-    let last_indx = state.fields.len() - 1;
-    let nesting_state = state.fields[last_indx].nesting_state.clone();
-
     match get_attributes_type_mut(state, basic_info) {
-        Some(xml_attr_type) => match (xml_attr_type.clone(), nesting_state) {
+        Some(xml_attr_type) => match (
+            xml_attr_type.clone(),
+            basic_info.current_key.attribute_type.clone(),
+        ) {
             (
                 XmlAttributesType::NoAttribute(xml_attr_info),
                 NestingState::JsonArrayNestingState,
@@ -124,7 +124,7 @@ pub fn get_attributes_object_id(
             ) => get_atrributes_object_id_case_no_attr_obj(xml_attr_type, &xml_attr_info),
             _ => None,
         },
-        _ => match nesting_state {
+        _ => match basic_info.current_key.attribute_type {
             NestingState::JsonObjectNestinState => {
                 get_atrributes_object_id_case_not_in_dict_obj(state, basic_info)
             }

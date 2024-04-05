@@ -1,9 +1,5 @@
 <age namn="s" yrke="Snuspetare">null</age>
   <name b6963151-02e7-48dc-9b60-36b71069a5f6>Alice Williams</name>
-  7e73e5cf-bdf0-4b52-a236-2a41e9561d12<age_attributes namn="s" yrke="Snuspetare">
-   <namn>s</namn>7e73e5cf-bdf0-4b52-a236-2a41e9561d13
-   <yrke>Snuspetare</yrke>7e73e5cf-bdf0-4b52-a236-2a41e9561d13
-  </age_attributes>7e73e5cf-bdf0-4b52-a236-2a41e9561d12
   d437f803-5779-46ba-8bb9-14200de3c0ee<name_attributes b6963151-02e7-48dc-9b60-36b71069a5f6>
    <namn>Niclas</namn>d437f803-5779-46ba-8bb9-14200de3c0ee
    <yrke>Snuspetare</yrke>d437f803-5779-46ba-8bb9-14200de3c0ee

@@ -8,7 +8,6 @@ pub fn json_object_open_case(char_val: &char, state: &mut State) {
     match char_val {
         '"' => {
             add_open_tag(state, true);
-            state.update_nesting_state(NestingState::JsonObjectNestinState);
 
             state.fields.push(Field::new(&mut state.xml_attributes_map));
             state.update_token_type(TokenType::JsonObject(TokenStage::Content(

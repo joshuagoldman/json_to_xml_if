@@ -48,14 +48,14 @@ pub fn array_val_json_number_open_case(
             add_tag_val(state, json_num_as_str);
             state.fields.pop();
 
-            add_close_tag(state, true);
+            add_close_tag(state, false);
             state.update_to_item_separate_state();
         }
         ']' => {
             add_tag_val(state, json_num_as_str);
             state.fields.pop();
 
-            add_close_tag(state, true);
+            add_close_tag(state, false);
             state.fields.pop();
 
             state.update_to_closed_state();

@@ -1,7 +1,4 @@
-use crate::json_to_if::{
-    state::State,
-    xml_attributes::models::XmlAttributesType,
-};
+use crate::json_to_if::{state::State, xml_attributes::models::XmlAttributesType};
 
 use super::{
     get_attributes_type_mut,
@@ -12,15 +9,16 @@ fn update_xmlattribute_key_arr(
     xml_atrribute_key: &String,
     array_type_info: &mut XmlAttributeArrayinfo,
 ) {
-    let mut new_attr_vec = array_type_info.attributes.last().unwrap().clone();
-
-    new_attr_vec.push(XmlAttribute {
+    let new_attr = XmlAttribute {
         xml_attribute_value: String::new(),
         xml_atrribute_key: xml_atrribute_key.clone(),
-    });
-
-    array_type_info.attributes.pop();
-    array_type_info.attributes.push(new_attr_vec.clone());
+    };
+    if array_type_info.attributes.len() == 0 {
+        array_type_info.attributes.push(vec![new_attr])
+    } else {
+        let last_indx = array_type_info.attributes.len() - 1;
+        array_type_info.attributes[last_indx].push(new_attr);
+    }
 }
 
 fn update_xmlattribute_key_obj(
@@ -65,27 +63,31 @@ fn update_xmlattribute_val_arr(
     xml_atrribute_value: &String,
     array_type_info: &mut XmlAttributeArrayinfo,
 ) {
-    let mut new_attr_vec = array_type_info.attributes.last().unwrap().clone();
-
-    let mut last_attr_info = new_attr_vec.last().unwrap().clone();
-    last_attr_info.xml_attribute_value = xml_atrribute_value.clone();
-
-    new_attr_vec.pop();
-    new_attr_vec.push(last_attr_info.clone());
-
-    array_type_info.attributes.pop();
-    array_type_info.attributes.push(new_attr_vec.clone());
+    match array_type_info.attributes.len() > 0 {
+        true => {
+            let last_indx_vec_of_vec = array_type_info.attributes.len() - 1;
+            if let true = array_type_info.attributes[last_indx_vec_of_vec].len() > 0 {
+                let last_indx_vec = array_type_info.attributes.len() - 1;
+                array_type_info.attributes[last_indx_vec_of_vec][last_indx_vec]
+                    .xml_attribute_value = xml_atrribute_value.clone();
+            }
+        }
+        _ => (),
+    }
 }
 
 fn update_xmlattribute_val_obj(
     xml_atrribute_value: &String,
     object_type_info: &mut XmlAttributeObjectInfo,
 ) {
-    let mut last_attribute = object_type_info.attributes.last().unwrap().clone();
-    last_attribute.xml_attribute_value = xml_atrribute_value.clone();
-
-    object_type_info.attributes.pop();
-    object_type_info.attributes.push(last_attribute.clone());
+    match object_type_info.attributes.len() > 0 {
+        true => {
+            let last_indx = object_type_info.attributes.len() - 1;
+            object_type_info.attributes[last_indx].xml_attribute_value =
+                xml_atrribute_value.clone();
+        }
+        _ => (),
+    }
 }
 
 pub fn update_xml_attribute_val_found_entry(

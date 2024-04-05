@@ -26,7 +26,6 @@ pub fn check_end_xml_attributes_object_handling(
     xml_attributes_object_info: XmlAttributeObjectInfo,
 ) {
     let xml_attibutes_vec_str = construct_xml_attributes_str(&xml_attributes_object_info);
-    println!("{:#?}", xml_attibutes_vec_str);
 
     if xml_attibutes_vec_str.len() != 0 {
         state.curr_xml = state.curr_xml.replace(
@@ -49,6 +48,9 @@ pub fn check_end_xml_no_attributes_handling(
     state: &mut State,
     keys_info: XmlAttributeNoAttributeInfo,
 ) {
+    if let Some(obj_id) = keys_info.object_id {
+        state.curr_xml = state.curr_xml.replace(format!(" {}", obj_id).as_str(), "");
+    }
     for (_, id) in keys_info.unique_key_ids.iter().enumerate() {
         state.curr_xml = state.curr_xml.replace(format!(" {}", id).as_str(), "")
     }
@@ -106,7 +108,14 @@ pub fn remove_str_chunk_by_key(str_val: &mut String, str_key: &String) {
         *str_val = str_val
             .chars()
             .take(found_indices_ints[0])
-            .chain(str_val.chars().skip(found_indices_ints[1] + str_key.len()))
+            .chain(
+                str_val
+                    .chars()
+                    .skip(found_indices_ints[1] + str_key.len())
+                    .collect::<String>()
+                    .trim()
+                    .chars(),
+            )
             .collect();
         found_indices = str_val.match_indices(str_key);
         found_indices_ints = found_indices

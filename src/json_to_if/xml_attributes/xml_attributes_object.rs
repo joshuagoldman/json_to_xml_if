@@ -107,7 +107,7 @@ pub fn object_attributes_stage_value_closed(char_val: &char, state: &mut State) 
                 XmlAttributesObjectStages::KeyValFieldSeparator,
             ));
         }
-        '}' => (),
+        '}' => state.xml_attributes = None,
         _ => state.abort_xml_attributes(),
     }
 }

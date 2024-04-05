@@ -16,9 +16,9 @@ pub fn array_attributes_stage_init(char_val: &char, state: &mut State) {
 
 pub fn array_attributes_stage_object_init(char_val: &char, state: &mut State) {
     match char_val {
-        '"' => state.update_state(XmlAttributesStages::Array(
-            XmlAttributesArrayStages::ObjectInit,
-        )),
+        '"' => state.update_state(XmlAttributesStages::Array(XmlAttributesArrayStages::Key(
+            XmlAttributeKeyValueStages::Open(String::new()),
+        ))),
         'n' => state.update_state(XmlAttributesStages::Array(
             XmlAttributesArrayStages::NullValue("n".to_string()),
         )),
@@ -74,7 +74,7 @@ pub fn array_attributes_stage_key_closed(char_val: &char, state: &mut State) {
     match char_val {
         ':' => {
             state.update_state(XmlAttributesStages::Array(
-                XmlAttributesArrayStages::KeyValFieldSeparator,
+                XmlAttributesArrayStages::KeyValSeparator,
             ));
         }
         _ => state.abort_xml_attributes(),
@@ -127,15 +127,10 @@ pub fn array_attributes_stage_value_closed(char_val: &char, state: &mut State) {
 
 pub fn array_attributes_stage_key_val_field_separator(char_val: &char, state: &mut State) {
     match char_val {
-        ',' => {
+        '"' => {
             state.update_state(XmlAttributesStages::Array(XmlAttributesArrayStages::Key(
                 XmlAttributeKeyValueStages::Open(String::new()),
             )));
-        }
-        '}' => {
-            state.update_state(XmlAttributesStages::Array(
-                XmlAttributesArrayStages::ObjectEnd,
-            ));
         }
         _ => state.abort_xml_attributes(),
     }
@@ -149,9 +144,7 @@ pub fn array_attributes_stage_object_end(char_val: &char, state: &mut State) {
             ));
         }
         ']' => {
-            state.update_state(XmlAttributesStages::Array(
-                XmlAttributesArrayStages::ObjectEnd,
-            ));
+            state.xml_attributes = None;
         }
         _ => state.abort_xml_attributes(),
     }
@@ -161,7 +154,7 @@ pub fn array_attributes_stage_object_separator(char_val: &char, state: &mut Stat
     match char_val {
         '{' => {
             state.update_state(XmlAttributesStages::Array(
-                XmlAttributesArrayStages::ObjectSeparator,
+                XmlAttributesArrayStages::ObjectInit,
             ));
         }
         _ => state.abort_xml_attributes(),

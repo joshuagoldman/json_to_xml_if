@@ -158,8 +158,6 @@ pub fn key_val_json_null_case_open(char_val: &char, state: &mut State, curr_str_
             add_close_tag(state, false);
             state.fields.pop();
 
-            add_close_tag(state, true);
-            state.check_end_xml_attributes();
             state.update_token_type(TokenType::JsonObject(TokenStage::Content(
                 KeyValState::ValState(KeyValType::Null(JsonNull::Closing)),
             )));
@@ -181,6 +179,8 @@ pub fn key_val_json_null_case_closed(char_val: &char, state: &mut State) {
             state.update_to_item_separate_state();
         }
         '}' => {
+            add_close_tag(state, true);
+            state.check_end_xml_attributes();
             state.fields.pop();
             state.update_to_closed_state();
         }

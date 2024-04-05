@@ -6,6 +6,10 @@
 	    "city": "New York",
     "state": null
   },
+  "address_attributes": {
+    "gender": "male",
+    "yrke": "Snuspetare"
+  },
   "tags": ["apple", "banana", "orange"],
   "friends": [
     {
@@ -20,7 +24,7 @@
       "name": "Alice Williams",
       "age": null,
       "age_attributes": {
-        "namn": ["s"],
+        "namn": "s",
         "yrke": "Snuspetare"
       },
       "name_attributes": {
@@ -29,6 +33,24 @@
       }
     },
     null
+  ],
+  "friends_attributes": [
+    {
+      "species": "snake",
+      "flavor": "citrus"
+    },
+    {
+      "species": "cat",
+      "flavor": "fur"
+    },
+    {
+      "species": "croc",
+      "flavor": "sushi"
+    },
+    {
+      "species": "elephant",
+      "flavor": "strawberry"
+    }
   ],
   "preferences": {
     "music": [null, "pop"],

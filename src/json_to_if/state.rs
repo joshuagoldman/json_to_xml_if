@@ -17,7 +17,7 @@ use super::{
         xml_attributes_object_id::{
             get_attributes_object_id, get_attributes_object_id_for_closing_tag,
         },
-        xml_attributes_update::update_xml_attribute_value,
+        xml_attributes_update::{update_xml_attribute_key, update_xml_attribute_value},
     },
 };
 
@@ -97,8 +97,10 @@ impl State {
             return None;
         }
 
-        let last_indx = self.fields.len() - 1;
-        let last_field = self.fields[last_indx.clone()].clone();
+        let parent_index = self.fields.len() - 2;
+        let last_index = self.fields.len() - 1;
+        let parent_field = self.fields[parent_index.clone()].clone();
+        let last_field = self.fields[last_index.clone()].clone();
         match (self.xml_attributes.clone(), last_field.key.clone()) {
             (None, Some(key)) => {
                 if key.to_uppercase().ends_with("_ATTRIBUTES") {
@@ -106,21 +108,25 @@ impl State {
                         .get()
                         .unwrap()
                         .replace(key.as_str(), "");
+                    println!("nesting state is: {:#?}", parent_field.nesting_state);
+                    let nesting_state: NestingState;
+                    let curr_stage: XmlAttributesStages;
+                    if let TokenType::JsonObject(_) = parent_field.token_type {
+                        curr_stage = XmlAttributesStages::Object(XmlAttributesObjectStages::Init);
+                        nesting_state = NestingState::JsonObjectNestinState;
+                    } else {
+                        curr_stage = XmlAttributesStages::Array(XmlAttributesArrayStages::Init);
+                        nesting_state = NestingState::JsonArrayNestingState;
+                    };
                     let map_key = XmlAttributesMapKey {
-                        attribute_type: last_field.nesting_state.clone(),
+                        attribute_type: nesting_state,
                         attribute_base_name: xml_key_base.to_string(),
                     };
-                    let curr_stage =
-                        if let NestingState::JsonObjectNestinState = last_field.nesting_state {
-                            XmlAttributesStages::Object(XmlAttributesObjectStages::Init)
-                        } else {
-                            XmlAttributesStages::Array(XmlAttributesArrayStages::Init)
-                        };
 
                     let basic_info = XmlAttributesBasicInfo {
                         current_key: map_key,
                         curr_stage,
-                        attr_id: last_field.xml_attributes_map_id.clone(),
+                        attr_id: parent_field.xml_attributes_map_id.clone(),
                     };
                     self.xml_attributes = Some(basic_info.clone());
 
@@ -187,13 +193,14 @@ impl State {
 
     pub fn abort_xml_attributes(&mut self) {
         if let Some(xml_attr_basic_info) = self.xml_attributes.clone() {
-            abort_attributes(self, &xml_attr_basic_info)
+            abort_attributes(self, &xml_attr_basic_info);
+            self.xml_attributes = None;
         }
     }
 
     pub fn update_xml_attribute_key(&mut self, xml_atrribute_key: &String) {
         if let Some(basic_info) = self.xml_attributes.clone() {
-            update_xml_attribute_value(self, &basic_info, xml_atrribute_key)
+            update_xml_attribute_key(self, &basic_info, xml_atrribute_key)
         }
     }
 

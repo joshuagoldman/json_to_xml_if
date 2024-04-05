@@ -4,12 +4,7 @@ use self::{
         XmlAttributesObjectStages, XmlAttributesType,
     },
     xml_attributes_array::{
-        array_attributes_stage_key_closed, array_attributes_stage_key_open,
-        array_attributes_stage_key_val_field_separator,
-        array_attributes_stage_key_val_separator_case, array_attributes_stage_null,
-        array_attributes_stage_object_end, array_attributes_stage_object_init,
-        array_attributes_stage_object_separator, array_attributes_stage_value_closed,
-        array_attributes_stage_value_open,
+        array_attributes_stage_init, array_attributes_stage_key_closed, array_attributes_stage_key_open, array_attributes_stage_key_val_field_separator, array_attributes_stage_key_val_separator_case, array_attributes_stage_null, array_attributes_stage_object_end, array_attributes_stage_object_init, array_attributes_stage_object_separator, array_attributes_stage_value_closed, array_attributes_stage_value_open
     },
     xml_attributes_object::{
         object_attributes_stage_init, object_attributes_stage_key_closed,
@@ -133,7 +128,7 @@ fn xml_attributes_state_attributes_array(
     array_stages: XmlAttributesArrayStages,
 ) {
     match array_stages {
-        XmlAttributesArrayStages::Init => array_attributes_stage_object_init(char_val, state),
+        XmlAttributesArrayStages::Init => array_attributes_stage_init(char_val, state),
         XmlAttributesArrayStages::ObjectInit => array_attributes_stage_object_init(char_val, state),
         XmlAttributesArrayStages::Key(xml_attribute_key_stage) => {
             xml_attributes_state_array_key_stages(char_val, state, xml_attribute_key_stage)
@@ -174,7 +169,9 @@ fn xml_attributes_state_attributes(
 
 pub fn xml_attributes_check_state(char_val: &char, state: &mut State) {
     match state.xml_attributes.clone() {
-        Some(attributes_info) => xml_attributes_state_attributes(char_val, state, attributes_info),
+        Some(attributes_info) => {
+            xml_attributes_state_attributes(char_val, state, attributes_info);
+        }
         None => (),
     }
 }

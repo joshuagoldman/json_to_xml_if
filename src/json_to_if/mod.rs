@@ -92,6 +92,7 @@ fn add_close_tag(state: &mut State, indent: bool) {
     } else if let NestingState::JsonArrayNestingState =
         state.fields[state.fields.len() - 2].nesting_state
     {
+        state.curr_xml = default_xml_tag;
     } else if let Some(obj_id) = state.get_obj_id_for_closing_tag() {
         state.curr_xml = format!("{}{}</{}>{}", state.curr_xml, indentation_str, key, obj_id);
     } else {
@@ -214,7 +215,7 @@ fn token_type_json_array_decision(
 }
 
 fn is_val_empty(char_val: &char) -> bool {
-    vec![' ', '\t', '\r'].iter().any(|x| x == char_val)
+    vec![' ', '\n', '\t', '\r'].iter().any(|x| x == char_val)
 }
 
 fn json_val_open_case_char_empty_val(char_val: &char, state: &mut State) -> bool {
@@ -244,12 +245,12 @@ fn json_val_open_case_char_empty_val_xml_attr(char_val: &char, state: &mut State
             xml_attributes::models::XmlAttributesStages::Array(
                 XmlAttributesArrayStages::Value(XmlAttributeKeyValueStages::Open(curr_val)),
             ) => {
-                object_attributes_stage_value_open(char_val, state, &curr_val);
+                array_attributes_stage_value_open(char_val, state, &curr_val);
             }
             xml_attributes::models::XmlAttributesStages::Object(
                 XmlAttributesObjectStages::Value(XmlAttributeKeyValueStages::Open(curr_val)),
             ) => {
-                array_attributes_stage_value_open(char_val, state, &curr_val);
+                object_attributes_stage_value_open(char_val, state, &curr_val);
             }
             _ => (),
         },
@@ -260,7 +261,6 @@ fn json_val_open_case_char_empty_val_xml_attr(char_val: &char, state: &mut State
 fn to_if_req_single(char_val: &char, state: &mut State) {
     if vec!['\n'].iter().any(|x| x == char_val) {
         state.curr_row_num += 1;
-        return;
     }
 
     if state.fields.len() == 0 {
