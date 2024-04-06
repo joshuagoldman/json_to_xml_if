@@ -1,3 +1,5 @@
+use std::i32;
+
 use super::{
     models::{ArrayValType, JsonNull, JsonStr, TokenStage, TokenType},
     state::State,
@@ -57,7 +59,7 @@ pub fn array_val_json_number_open_case(
 
             state.update_to_closed_state();
         }
-        _ => match json_num_as_str.parse::<i32>() {
+        _ => match char_val.to_string().parse::<i32>() {
             Ok(_) => {
                 state.update_token_type(TokenType::JsonArray(TokenStage::Content(
                     ArrayValType::JsonNumber(new_num_as_str),

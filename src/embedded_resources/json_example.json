@@ -13,27 +13,11 @@
     "gender": "male",
     "yrke": "Snuspetare"
   },
-  "tags": ["apple", "banana", "orange"],
+  "tags": [22999, "banana", "orange"],
   "friends": [
     {
       "name": "Jane Smith",
       "age": 28
-    },
-    {
-      "name": "Bob Johnson",
-      "age": 32
-    },
-    {
-      "name_attributes": {
-        "namn": "Niclas",
-        "yrke": "Snuspetare"
-      },
-      "name": null,
-      "age": null,
-      "ages_attributes": {
-        "namn": "s",
-        "yrke": "Snuspetare"
-      }
     },
     {
       "name": "Bob Johnson",
@@ -44,23 +28,54 @@
     {
       "species": "snake",
       "flavor": "citrus"
-    },
-    {
-      "species": "cat",
-      "flavor": "fur"
-    },
-    {
-      "species": "croc",
-      "flavor": "sushi"
-    },
-    {
-      "species": "elephant",
-      "flavor": "strawberry"
     }
   ],
+  "preferences_attributes": {
+    "question": "why",
+    "anwer": "meew I donno"
+  },
   "preferences": {
-    "music": [null, "pop"],
+    "music": ["ss", "pop"],
+    "music_attributes": [
+      {
+        "user": "admin",
+        "user_attributes": {
+          "fisk": "lax",
+          "mat": "hamburgare"
+        },
+        "user": [
+          32,
+          "joshua"
+        ],
+        "user_attributes": [
+          {
+            "name": "jakke"
+          },
+          {
+            "kroppsdel": "hals"
+          }
+        ],
+        "life": "short
+        kind of"
+      },
+      {
+        "height": "tall"
+      },
+      {
+        "livslust": "stor"
+      }
+    ],
     "movies": ["action", "comedy"],
-    "colors": ["blue", null]
+    "colors": ["blue", null],
+    "colors_attributes": [
+      {
+        "floor": "third",
+        "height": "low"
+      },
+      {
+        "level": "third",
+        "preference": "snooth"
+      }
+    ]
   }
 }

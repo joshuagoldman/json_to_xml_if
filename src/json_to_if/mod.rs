@@ -15,14 +15,13 @@ use self::{
     },
     models::{
         ArrayValType, Field, JsonNull, JsonStr, KeyValState, KeyValType, NestingState, TokenStage,
-        TokenStageKey, TokenType, XmlOpenTagOptions,
+        TokenStageKey, TokenType,
     },
     state::State,
     xml_attributes::{
         models::{XmlAttributeKeyValueStages, XmlAttributesArrayStages, XmlAttributesObjectStages},
         xml_attributes_array::array_attributes_stage_value_open,
         xml_attributes_check_state,
-        xml_attributes_marking::get_attributes_mark,
         xml_attributes_object::object_attributes_stage_value_open,
     },
 };

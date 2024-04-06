@@ -53,7 +53,19 @@ pub fn add_open_tag(state: &mut State, indent: bool, tag_options: XmlOpenTagOpti
 
     match tag_options {
         XmlOpenTagOptions::ArraySimpleVal => {
-            state.curr_xml = format!("{}{}<{}>", state.curr_xml, indentation_str, key);
+            if let Some(attr_id) = get_attributes_mark(
+                state,
+                &key,
+                FieldPositionNumForMap {
+                    xml_attr_type_num: 2,
+                    xml_attr_map_num: 3,
+                },
+            ) {
+                state.curr_xml =
+                    format!("{}{}<{} {}>", state.curr_xml, indentation_str, key, attr_id);
+            } else {
+                state.curr_xml = format!("{}{}<{}>", state.curr_xml, indentation_str, key);
+            }
         }
         XmlOpenTagOptions::ArrayValOpening => {
             tag_options_attr_decision(
@@ -103,5 +115,9 @@ pub fn add_close_tag(state: &mut State, indent: bool) {
 }
 
 pub fn add_tag_val(state: &mut State, str_val: &String) {
-    state.curr_xml = format!("{}{}", state.curr_xml, str_val);
+    if str_val.is_empty() {
+        state.curr_xml = format!("{}null", state.curr_xml);
+    } else {
+        state.curr_xml = format!("{}{}", state.curr_xml, str_val);
+    }
 }

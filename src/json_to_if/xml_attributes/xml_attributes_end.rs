@@ -23,6 +23,8 @@ pub fn check_end_xml_attributes_array_handling(
                 state.curr_xml = state
                     .curr_xml
                     .replace(id, xml_attibutes_vec_str[i].as_str());
+            } else {
+                state.curr_xml = state.curr_xml.replace(format!(" {}", id).as_str(), "");
             }
         }
     } else {
@@ -67,9 +69,6 @@ pub fn check_end_xml_no_attributes_handling(
     state: &mut State,
     keys_info: XmlAttributeNoAttributeInfo,
 ) {
-    if let Some(obj_id) = keys_info.object_id {
-        state.curr_xml = state.curr_xml.replace(format!(" {}", obj_id).as_str(), "");
-    }
     for (_, id) in keys_info.unique_key_ids.iter().enumerate() {
         state.curr_xml = state.curr_xml.replace(format!(" {}", id).as_str(), "")
     }

@@ -3,7 +3,7 @@ use crate::json_to_if::models::JsonNull;
 use super::{
     models::{Field, XmlOpenTagOptions},
     unexpected_character_error,
-    xml_tag::{add_close_tag, add_open_tag},
+    xml_tag::{add_close_tag, add_open_tag, add_tag_val},
     ArrayValType, JsonStr, NestingState, State, TokenStage, TokenType,
 };
 
@@ -16,7 +16,6 @@ fn new_arr_value_handling(state: &mut State) {
 }
 
 pub fn json_array_open_case(char_val: &char, state: &mut State) {
-    const RADIX: u32 = 10;
     match char_val {
         '"' => {
             new_arr_value_handling(state);
@@ -33,6 +32,10 @@ pub fn json_array_open_case(char_val: &char, state: &mut State) {
             state.update_token_type(TokenType::JsonObject(TokenStage::Opening));
         }
         ']' => {
+            add_open_tag(state, true, XmlOpenTagOptions::ArraySimpleVal);
+            add_tag_val(state, &String::new());
+            add_close_tag(state, false);
+
             state.fields.pop();
             state.update_token_type(TokenType::JsonArray(TokenStage::Closing));
         }
@@ -43,15 +46,15 @@ pub fn json_array_open_case(char_val: &char, state: &mut State) {
                 ArrayValType::Null(JsonNull::Open("n".to_string())),
             )));
         }
-        _ => match char_val.to_digit(RADIX) {
-            Some(_) => {
+        _ => match char_val.to_string().parse::<i32>() {
+            Ok(_) => {
                 new_arr_value_handling(state);
 
                 state.update_token_type(TokenType::JsonArray(TokenStage::Content(
                     ArrayValType::JsonNumber(String::new()),
                 )));
             }
-            None => unexpected_character_error(char_val, state),
+            _ => unexpected_character_error(char_val, state),
         },
     }
 }
@@ -72,7 +75,6 @@ pub fn json_array_closed_case(char_val: &char, state: &mut State) {
 }
 
 pub fn json_array_item_separator_case(char_val: &char, state: &mut State) {
-    const RADIX: u32 = 10;
     match char_val {
         '"' => {
             new_arr_value_handling(state);
@@ -95,15 +97,15 @@ pub fn json_array_item_separator_case(char_val: &char, state: &mut State) {
                 ArrayValType::Null(JsonNull::Open("n".to_string())),
             )));
         }
-        _ => match char_val.to_digit(RADIX) {
-            Some(_) => {
+        _ => match char_val.to_string().parse::<i32>() {
+            Ok(_) => {
                 new_arr_value_handling(state);
 
                 state.update_token_type(TokenType::JsonArray(TokenStage::Content(
                     ArrayValType::JsonNumber(char_val.to_string()),
                 )));
             }
-            None => unexpected_character_error(char_val, state),
+            _ => unexpected_character_error(char_val, state),
         },
     }
 }

@@ -54,7 +54,6 @@ pub fn key_closed_cased(char_val: &char, state: &mut State) {
 }
 
 pub fn key_val_separator_case(char_val: &char, state: &mut State) {
-    const RADIX: u32 = 10;
     match char_val {
         '"' => {
             add_open_tag(state, true, XmlOpenTagOptions::ObjectSimpleVal);
@@ -74,14 +73,14 @@ pub fn key_val_separator_case(char_val: &char, state: &mut State) {
         '[' => {
             state.update_token_type(TokenType::JsonArray(TokenStage::Opening));
         }
-        _ => match char_val.to_digit(RADIX) {
-            Some(_) => {
+        _ => match char_val.to_string().parse::<i32>() {
+            Ok(_) => {
                 add_open_tag(state, true, XmlOpenTagOptions::ObjectSimpleVal);
                 state.update_token_type(TokenType::JsonObject(TokenStage::Content(
                     KeyValState::ValState(KeyValType::JsonNumber(char_val.to_string())),
                 )));
             }
-            None => unexpected_character_error(char_val, state),
+            _ => unexpected_character_error(char_val, state),
         },
     }
 }

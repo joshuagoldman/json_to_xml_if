@@ -167,7 +167,6 @@ impl State {
     pub fn abort_xml_attributes(&mut self) {
         if let Some(xml_attr_basic_info) = self.xml_attributes.clone() {
             abort_attributes(self, &xml_attr_basic_info);
-            self.xml_attributes = None;
         }
     }
 

@@ -1,7 +1,5 @@
 use crate::json_to_if::{
-    models::{
-        FieldPositionNumForMap, NestingState, TokenType, XmlOpenTagOptions, ATTRIBUTES_REGEX_EXPR,
-    },
+    models::{FieldPositionNumForMap, NestingState, XmlOpenTagOptions, ATTRIBUTES_REGEX_EXPR},
     state::State,
     xml_tag::check_if_nested_in_array,
 };
