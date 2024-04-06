@@ -21,7 +21,6 @@ fn update_xmlattribute_key_arr(
         let last_indx = array_type_info.attributes.len() - 1;
         array_type_info.attributes[last_indx].push(new_attr);
     }
-    println!("{:#?}", array_type_info);
 }
 
 fn update_xmlattribute_key_obj(

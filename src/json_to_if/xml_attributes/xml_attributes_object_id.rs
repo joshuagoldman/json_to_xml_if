@@ -14,6 +14,23 @@ use super::{
     },
 };
 
+fn get_atrributes_object_id_case_already_arr_attr(
+    xml_attr_type: &mut XmlAttributesType,
+    xml_attr_info: &XmlAttributeArrayinfo,
+) -> Option<XmlAttributesUniqIds> {
+    println!("came here");
+    let unique_id = Uuid::new_v4().to_string();
+    let mut new_xml_attr_info = xml_attr_info.clone();
+    new_xml_attr_info.unique_key_ids.push(unique_id.clone());
+
+    *xml_attr_type = XmlAttributesType::ArrayTypeAttributes(new_xml_attr_info.clone());
+
+    Some(XmlAttributesUniqIds {
+        attr_id: unique_id.clone(),
+        attr_object_id: new_xml_attr_info.object_id,
+    })
+}
+
 fn get_atrributes_object_id_case_no_attr_arr(
     xml_attr_type: &mut XmlAttributesType,
     xml_attr_info: &XmlAttributeNoAttributeInfo,
@@ -140,6 +157,10 @@ pub fn get_attributes_object_id(
                 XmlAttributesType::NoAttribute(xml_attr_info),
                 NestingState::JsonObjectNestinState,
             ) => get_atrributes_object_id_case_no_attr_obj(xml_attr_type, &xml_attr_info),
+            (
+                XmlAttributesType::ArrayTypeAttributes(xml_attr_info),
+                NestingState::JsonArrayNestingState,
+            ) => get_atrributes_object_id_case_already_arr_attr(xml_attr_type, &xml_attr_info),
             _ => None,
         },
         _ => match basic_info.current_key.attribute_type {

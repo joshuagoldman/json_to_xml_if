@@ -1,15 +1,14 @@
 use super::{
-    add_close_tag, add_tag_val,
     models::{ArrayValType, JsonNull, JsonStr, TokenStage, TokenType},
     state::State,
     unexpected_character_error,
+    xml_tag::{add_close_tag, add_tag_val},
 };
 
 fn array_close_value_handling(state: &mut State, str_val: &String) {
     add_tag_val(state, str_val);
     add_close_tag(state, false);
     state.fields.pop();
-    state.check_end_xml_attributes();
 }
 
 pub fn array_val_json_str_open_case(char_val: &char, state: &mut State, json_str: &String) {

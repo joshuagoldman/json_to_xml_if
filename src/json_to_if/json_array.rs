@@ -1,8 +1,10 @@
-use crate::json_to_if::{add_open_tag, array_val::array_val_json_str_open_case, Field, JsonNull};
+use crate::json_to_if::models::JsonNull;
 
 use super::{
-    add_close_tag, unexpected_character_error, ArrayValType, JsonStr, NestingState, State,
-    TokenStage, TokenType,
+    models::{Field, XmlOpenTagOptions},
+    unexpected_character_error,
+    xml_tag::{add_close_tag, add_open_tag},
+    ArrayValType, JsonStr, NestingState, State, TokenStage, TokenType,
 };
 
 fn new_arr_value_handling(state: &mut State) {
@@ -10,7 +12,7 @@ fn new_arr_value_handling(state: &mut State) {
     let mut field = Field::new(&mut state.xml_attributes_map);
     field.key = state.fields[state.fields.len() - 1].key.clone();
     state.fields.push(field);
-    add_open_tag(state, true, true);
+    add_open_tag(state, true, XmlOpenTagOptions::ArraySimpleVal);
 }
 
 pub fn json_array_open_case(char_val: &char, state: &mut State) {

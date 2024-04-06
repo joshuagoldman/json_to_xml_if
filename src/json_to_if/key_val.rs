@@ -1,14 +1,15 @@
 use regex::Regex;
 
 use crate::json_to_if::{
-    add_open_tag,
-    models::{JsonNull, JsonStr, KeyValState, KeyValType},
+    models::{JsonNull, JsonStr, KeyValState, KeyValType, XmlOpenTagOptions},
+    xml_tag::add_open_tag,
 };
 
 use super::{
-    add_close_tag, add_tag_val,
     models::{TokenStage, TokenStageKey, TokenType},
-    unexpected_character_error, State,
+    unexpected_character_error,
+    xml_tag::{add_close_tag, add_tag_val},
+    State,
 };
 
 fn json_key_update(state: &mut State, char_val: &char) -> String {
@@ -56,7 +57,7 @@ pub fn key_val_separator_case(char_val: &char, state: &mut State) {
     const RADIX: u32 = 10;
     match char_val {
         '"' => {
-            add_open_tag(state, true, false);
+            add_open_tag(state, true, XmlOpenTagOptions::ObjectSimpleVal);
             state.update_token_type(TokenType::JsonObject(TokenStage::Content(
                 KeyValState::ValState(KeyValType::JsonStr(JsonStr::Open(String::new()))),
             )));
@@ -65,7 +66,7 @@ pub fn key_val_separator_case(char_val: &char, state: &mut State) {
             state.update_token_type(TokenType::JsonObject(TokenStage::Opening));
         }
         'n' => {
-            add_open_tag(state, true, false);
+            add_open_tag(state, true, XmlOpenTagOptions::ObjectSimpleVal);
             state.update_token_type(TokenType::JsonObject(TokenStage::Content(
                 KeyValState::ValState(KeyValType::Null(JsonNull::Open("n".to_string()))),
             )));
@@ -75,7 +76,7 @@ pub fn key_val_separator_case(char_val: &char, state: &mut State) {
         }
         _ => match char_val.to_digit(RADIX) {
             Some(_) => {
-                add_open_tag(state, true, false);
+                add_open_tag(state, true, XmlOpenTagOptions::ObjectSimpleVal);
                 state.update_token_type(TokenType::JsonObject(TokenStage::Content(
                     KeyValState::ValState(KeyValType::JsonNumber(char_val.to_string())),
                 )));

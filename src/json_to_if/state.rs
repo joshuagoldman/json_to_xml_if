@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 
 use super::{
-    models::{Field, NestingState, TokenStage, TokenType, ATTRIBUTES_REGEX_EXPR},
+    models::{
+        Field, FieldPositionNumForMap, NestingState, TokenStage, TokenType, ATTRIBUTES_REGEX_EXPR,
+    },
     xml_attributes::{
         self,
         models::{
-            XmlAttributesArrayStages, XmlAttributesBasicInfo, XmlAttributesMapKey,
-            XmlAttributesObjectStages, XmlAttributesStages, XmlAttributesType,
+            XmlAttributesBasicInfo, XmlAttributesMapKey, XmlAttributesStages, XmlAttributesType,
             XmlAttributesUniqIds,
         },
         xml_attributes_abort::abort_attributes,
@@ -14,9 +15,8 @@ use super::{
             check_end_xml_attributes_array_handling, check_end_xml_attributes_object_handling,
             check_end_xml_no_attributes_handling,
         },
-        xml_attributes_object_id::{
-            get_attributes_object_id, get_attributes_object_id_for_closing_tag,
-        },
+        xml_attributes_init::init_xml_attributes,
+        xml_attributes_object_id::get_attributes_object_id_for_closing_tag,
         xml_attributes_update::{
             update_xml_attribute_arr_index, update_xml_attribute_key, update_xml_attribute_value,
         },
@@ -94,51 +94,11 @@ impl State {
         format!("\n{}", tabs_as_str)
     }
 
-    pub fn check_init_xml_attributes(&mut self) -> Option<XmlAttributesUniqIds> {
-        if self.fields.len() < 2 {
-            return None;
-        }
-
-        let parent_index = self.fields.len() - 2;
-        let last_index = self.fields.len() - 1;
-        let parent_field = self.fields[parent_index.clone()].clone();
-        let last_field = self.fields[last_index.clone()].clone();
-        match (self.xml_attributes.clone(), last_field.key.clone()) {
-            (None, Some(key)) => {
-                if key.to_uppercase().ends_with("_ATTRIBUTES") {
-                    let xml_key_base = ATTRIBUTES_REGEX_EXPR
-                        .get()
-                        .unwrap()
-                        .replace(key.as_str(), "");
-                    let nesting_state: NestingState;
-                    let curr_stage: XmlAttributesStages;
-                    if let TokenType::JsonObject(_) = parent_field.token_type {
-                        curr_stage = XmlAttributesStages::Object(XmlAttributesObjectStages::Init);
-                        nesting_state = NestingState::JsonObjectNestinState;
-                    } else {
-                        curr_stage =
-                            XmlAttributesStages::Array(XmlAttributesArrayStages::ObjectInit);
-                        nesting_state = NestingState::JsonArrayNestingState;
-                    };
-                    let map_key = XmlAttributesMapKey {
-                        attribute_type: nesting_state,
-                        attribute_base_name: xml_key_base.to_string(),
-                    };
-
-                    let basic_info = XmlAttributesBasicInfo {
-                        current_key: map_key.clone(),
-                        curr_stage,
-                        attr_id: parent_field.xml_attributes_map_id.clone(),
-                    };
-                    self.xml_attributes = Some(basic_info.clone());
-
-                    get_attributes_object_id(self, &basic_info)
-                } else {
-                    None
-                }
-            }
-            _ => None,
-        }
+    pub fn check_init_xml_attributes(
+        &mut self,
+        field_index_for_map: FieldPositionNumForMap,
+    ) -> Option<XmlAttributesUniqIds> {
+        init_xml_attributes(self, field_index_for_map)
     }
 
     pub fn get_obj_id_for_closing_tag(&mut self, key: &String) -> Option<String> {
@@ -168,9 +128,6 @@ impl State {
             .get(&last_field.xml_attributes_map_id)
         {
             Some(att_map) => {
-                if last_field.key == None {
-                        println!("{:#?}", att_map);
-                    }
                 for (_, (_, xml_attr_info_type)) in att_map.iter().enumerate() {
                     match xml_attr_info_type {
                         xml_attributes::models::XmlAttributesType::ArrayTypeAttributes(

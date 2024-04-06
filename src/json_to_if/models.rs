@@ -86,3 +86,17 @@ pub enum NestingState {
     JsonObjectNestinState,
     JsonArrayNestingState,
 }
+
+#[derive(Clone, Debug)]
+pub enum XmlOpenTagOptions {
+    ArraySimpleVal,
+    ObjectSimpleVal,
+    ObjectOpening,
+    ArrayValOpening,
+}
+
+#[derive(Clone, Debug)]
+pub struct FieldPositionNumForMap {
+    pub xml_attr_map_num: usize,
+    pub xml_attr_type_num: usize,
+}

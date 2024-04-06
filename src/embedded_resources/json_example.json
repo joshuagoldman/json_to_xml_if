@@ -1,5 +1,8 @@
 {
-  "name": "John Doe",
+  "name": "John Doe is mysomosmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmdsa slkslknla sk lk
+  klk
+
+  ssdl",
   "age": 30,
   "address": {
     "street": "123 Main St",
@@ -27,7 +30,7 @@
       },
       "name": null,
       "age": null,
-      "age_attributes": {
+      "ages_attributes": {
         "namn": "s",
         "yrke": "Snuspetare"
       }
@@ -35,8 +38,7 @@
     {
       "name": "Bob Johnson",
       "age": 32
-    },
-    null
+    }
   ],
   "friends_attributes": [
     {

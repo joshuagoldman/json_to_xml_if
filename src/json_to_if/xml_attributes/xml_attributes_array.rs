@@ -4,7 +4,6 @@ use crate::json_to_if::State;
 use super::models::{XmlAttributeKeyValueStages, XmlAttributesArrayStages, XmlAttributesStages};
 
 pub fn array_attributes_stage_init(char_val: &char, state: &mut State) {
-    println!("{}", char_val);
     match char_val {
         '{' => state.update_state(XmlAttributesStages::Array(
             XmlAttributesArrayStages::ObjectInit,

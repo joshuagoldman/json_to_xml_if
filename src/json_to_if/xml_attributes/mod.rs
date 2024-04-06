@@ -4,7 +4,12 @@ use self::{
         XmlAttributesObjectStages, XmlAttributesType,
     },
     xml_attributes_array::{
-        array_attributes_stage_init, array_attributes_stage_key_closed, array_attributes_stage_key_open, array_attributes_stage_key_val_field_separator, array_attributes_stage_key_val_separator_case, array_attributes_stage_null, array_attributes_stage_object_end, array_attributes_stage_object_init, array_attributes_stage_object_separator, array_attributes_stage_value_closed, array_attributes_stage_value_open
+        array_attributes_stage_init, array_attributes_stage_key_closed,
+        array_attributes_stage_key_open, array_attributes_stage_key_val_field_separator,
+        array_attributes_stage_key_val_separator_case, array_attributes_stage_null,
+        array_attributes_stage_object_end, array_attributes_stage_object_init,
+        array_attributes_stage_object_separator, array_attributes_stage_value_closed,
+        array_attributes_stage_value_open,
     },
     xml_attributes_object::{
         object_attributes_stage_init, object_attributes_stage_key_closed,
@@ -20,6 +25,7 @@ pub mod models;
 pub mod xml_attributes_abort;
 pub mod xml_attributes_array;
 pub mod xml_attributes_end;
+pub mod xml_attributes_init;
 pub mod xml_attributes_marking;
 pub mod xml_attributes_object;
 pub mod xml_attributes_object_id;

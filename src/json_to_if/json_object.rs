@@ -1,13 +1,15 @@
 use super::{
-    add_close_tag, add_open_tag,
-    models::{KeyValState, TokenStage, TokenStageKey, TokenType},
-    unexpected_character_error, Field, NestingState, State,
+    models::{KeyValState, TokenStage, TokenStageKey, TokenType, XmlOpenTagOptions},
+    unexpected_character_error,
+    xml_tag::{add_close_tag, add_open_tag, check_if_nested_in_array},
+    Field, State,
 };
 
 pub fn json_object_open_case(char_val: &char, state: &mut State) {
     match char_val {
         '"' => {
-            add_open_tag(state, true, false);
+            let options = check_if_nested_in_array(state);
+            add_open_tag(state, true, options);
 
             state.fields.push(Field::new(&mut state.xml_attributes_map));
             state.update_token_type(TokenType::JsonObject(TokenStage::Content(
@@ -15,8 +17,8 @@ pub fn json_object_open_case(char_val: &char, state: &mut State) {
             )));
         }
         '}' => {
-            add_open_tag(state, true, false);
-            add_close_tag(state, true);
+            add_open_tag(state, true, XmlOpenTagOptions::ObjectOpening);
+            add_close_tag(state, false);
             state.check_end_xml_attributes();
             state.fields.pop();
 

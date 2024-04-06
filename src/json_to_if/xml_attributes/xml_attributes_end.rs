@@ -9,16 +9,29 @@ pub fn check_end_xml_attributes_array_handling(
     xml_attributes_array_info: XmlAttributeArrayinfo,
 ) {
     let xml_attibutes_vec_str = construct_xml_attributes_str_vec(&xml_attributes_array_info);
-    println!("sqq: {:#?}", xml_attributes_array_info);
-    remove_str_chunk_by_key(&mut state.curr_xml, &xml_attributes_array_info.object_id);
-    for (i, id) in xml_attributes_array_info.unique_key_ids.iter().enumerate() {
-        if xml_attibutes_vec_str.len() != 0 && xml_attibutes_vec_str.len() - 1 >= i {
-            state.curr_xml = state
-                .curr_xml
-                .replace(id, xml_attibutes_vec_str[i].as_str());
-        } else {
-            state.curr_xml = state.curr_xml.replace(id, "")
+    if xml_attibutes_vec_str.len() != 0
+        && xml_attributes_array_info
+            .object_pairs_info
+            .has_attribute_obj
+        && xml_attributes_array_info
+            .object_pairs_info
+            .has_none_attribute_obj
+    {
+        remove_str_chunk_by_key(&mut state.curr_xml, &xml_attributes_array_info.object_id);
+        for (i, id) in xml_attributes_array_info.unique_key_ids.iter().enumerate() {
+            if xml_attibutes_vec_str.len() - 1 >= i {
+                state.curr_xml = state
+                    .curr_xml
+                    .replace(id, xml_attibutes_vec_str[i].as_str());
+            }
         }
+    } else {
+        for (_, id) in xml_attributes_array_info.unique_key_ids.iter().enumerate() {
+            state.curr_xml = state.curr_xml.replace(format!(" {}", id).as_str(), "");
+        }
+        state.curr_xml = state
+            .curr_xml
+            .replace(xml_attributes_array_info.object_id.as_str(), "");
     }
 }
 
@@ -104,6 +117,8 @@ fn construct_xml_attributes_str(xml_attributes_info: &XmlAttributeObjectInfo) ->
 }
 
 pub fn remove_str_chunk_by_key(str_val: &mut String, str_key: &String) {
+    println!("{:#?}", str_key);
+    print!("{}", str_val);
     let mut found_indices = str_val.match_indices(str_key);
     let mut found_indices_ints = found_indices
         .into_iter()
@@ -117,9 +132,8 @@ pub fn remove_str_chunk_by_key(str_val: &mut String, str_key: &String) {
             .chain(
                 str_val
                     .chars()
-                    .skip(found_indices_ints[1] + str_key.len() + 1)
+                    .skip(found_indices_ints[1] + str_key.len())
                     .collect::<String>()
-                    .trim_start()
                     .chars(),
             )
             .collect();
@@ -129,4 +143,9 @@ pub fn remove_str_chunk_by_key(str_val: &mut String, str_key: &String) {
             .map(|(indx, _)| indx)
             .collect::<Vec<usize>>();
     }
+
+    *str_val = str_val
+        .split("\n")
+        .filter(|x| !x.trim().is_empty())
+        .join("\n")
 }
