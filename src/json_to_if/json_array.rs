@@ -1,20 +1,23 @@
-use crate::json_to_if::{add_open_tag, Field, JsonNull};
+use crate::json_to_if::{add_open_tag, array_val::array_val_json_str_open_case, Field, JsonNull};
 
 use super::{
     add_close_tag, unexpected_character_error, ArrayValType, JsonStr, NestingState, State,
     TokenStage, TokenType,
 };
 
+fn new_arr_value_handling(state: &mut State) {
+    state.update_nesting_state(NestingState::JsonArrayNestingState);
+    let mut field = Field::new(&mut state.xml_attributes_map);
+    field.key = state.fields[state.fields.len() - 1].key.clone();
+    state.fields.push(field);
+    add_open_tag(state, true, true);
+}
+
 pub fn json_array_open_case(char_val: &char, state: &mut State) {
     const RADIX: u32 = 10;
     match char_val {
         '"' => {
-            state.update_nesting_state(NestingState::JsonArrayNestingState);
-            add_open_tag(state, true);
-
-            let mut field = Field::new(&mut state.xml_attributes_map);
-            field.key = state.fields[state.fields.len() - 1].key.clone();
-            state.fields.push(field);
+            new_arr_value_handling(state);
             state.update_token_type(TokenType::JsonArray(TokenStage::Content(
                 ArrayValType::JsonStr(JsonStr::Open(String::new())),
             )));
@@ -24,7 +27,6 @@ pub fn json_array_open_case(char_val: &char, state: &mut State) {
             let mut field = Field::new(&mut state.xml_attributes_map);
             field.key = state.fields[state.fields.len() - 1].key.clone();
             state.fields.push(field);
-            state.check_init_xml_attributes();
 
             state.update_token_type(TokenType::JsonObject(TokenStage::Opening));
         }
@@ -33,9 +35,7 @@ pub fn json_array_open_case(char_val: &char, state: &mut State) {
             state.update_token_type(TokenType::JsonArray(TokenStage::Closing));
         }
         'n' => {
-            state.update_nesting_state(NestingState::JsonArrayNestingState);
-            add_open_tag(state, true);
-            state.fields.push(Field::new(&mut state.xml_attributes_map));
+            new_arr_value_handling(state);
 
             state.update_token_type(TokenType::JsonArray(TokenStage::Content(
                 ArrayValType::Null(JsonNull::Open("n".to_string())),
@@ -43,8 +43,8 @@ pub fn json_array_open_case(char_val: &char, state: &mut State) {
         }
         _ => match char_val.to_digit(RADIX) {
             Some(_) => {
-                state.update_nesting_state(NestingState::JsonArrayNestingState);
-                add_open_tag(state, true);
+                new_arr_value_handling(state);
+
                 state.update_token_type(TokenType::JsonArray(TokenStage::Content(
                     ArrayValType::JsonNumber(String::new()),
                 )));
@@ -73,11 +73,8 @@ pub fn json_array_item_separator_case(char_val: &char, state: &mut State) {
     const RADIX: u32 = 10;
     match char_val {
         '"' => {
-            add_open_tag(state, true);
+            new_arr_value_handling(state);
 
-            let mut field = Field::new(&mut state.xml_attributes_map);
-            field.key = state.fields[state.fields.len() - 1].key.clone();
-            state.fields.push(field);
             state.update_token_type(TokenType::JsonArray(TokenStage::Content(
                 ArrayValType::JsonStr(JsonStr::Open(String::new())),
             )));
@@ -90,21 +87,15 @@ pub fn json_array_item_separator_case(char_val: &char, state: &mut State) {
             state.update_token_type(TokenType::JsonObject(TokenStage::Opening));
         }
         'n' => {
-            add_open_tag(state, true);
+            new_arr_value_handling(state);
 
-            let mut field = Field::new(&mut state.xml_attributes_map);
-            field.key = state.fields[state.fields.len() - 1].key.clone();
-            state.fields.push(field);
             state.update_token_type(TokenType::JsonArray(TokenStage::Content(
                 ArrayValType::Null(JsonNull::Open("n".to_string())),
             )));
         }
         _ => match char_val.to_digit(RADIX) {
             Some(_) => {
-                add_open_tag(state, true);
-                let mut field = Field::new(&mut state.xml_attributes_map);
-                field.key = state.fields[state.fields.len() - 1].key.clone();
-                state.fields.push(field);
+                new_arr_value_handling(state);
 
                 state.update_token_type(TokenType::JsonArray(TokenStage::Content(
                     ArrayValType::JsonNumber(char_val.to_string()),

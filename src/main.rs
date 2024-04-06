@@ -135,7 +135,11 @@ mod tests {
             .to_string();
         remove_str_chunk_by_key(
             &mut test_str,
-            &"7e73e5cf-bdf0-4b52-a236-2a41e9561d12".to_string(),
+            &"814b194a-faf5-432c-9f4c-e402a89a94d6".to_string(),
+        );
+        remove_str_chunk_by_key(
+            &mut test_str,
+            &"4e315479-9c93-4295-9b06-d604a4bdcc76".to_string(),
         );
 
         let mut file = File::create("/home/joshua/Public/Tests/comparison_2_xml.xml").unwrap();

@@ -35,7 +35,7 @@ pub mod models;
 pub mod state;
 pub mod xml_attributes;
 
-fn add_open_tag(state: &mut State, indent: bool) {
+fn add_open_tag(state: &mut State, indent: bool, is_array_simple_val: bool) {
     state.curr_indent += 1;
     let key = if state.fields.len() == 1 {
         "parameters".to_string()
@@ -53,11 +53,7 @@ fn add_open_tag(state: &mut State, indent: bool) {
 
     let default_xml_tag = format!("{}{}<{}>", state.curr_xml, indentation_str, key);
 
-    if state.fields.len() < 2 {
-        state.curr_xml = default_xml_tag;
-    } else if let NestingState::JsonArrayNestingState =
-        state.fields[state.fields.len() - 2].nesting_state
-    {
+    if is_array_simple_val {
         state.curr_xml = default_xml_tag;
     } else if let Some(ids_info) = state.check_init_xml_attributes() {
         state.curr_xml = format!(
@@ -87,13 +83,7 @@ fn add_close_tag(state: &mut State, indent: bool) {
     };
 
     let default_xml_tag = format!("{}{}</{}>", state.curr_xml, indentation_str, key);
-    if state.fields.len() < 2 {
-        state.curr_xml = default_xml_tag;
-    } else if let NestingState::JsonArrayNestingState =
-        state.fields[state.fields.len() - 2].nesting_state
-    {
-        state.curr_xml = default_xml_tag;
-    } else if let Some(obj_id) = state.get_obj_id_for_closing_tag() {
+    if let Some(obj_id) = state.get_obj_id_for_closing_tag(&key) {
         state.curr_xml = format!("{}{}</{}>{}", state.curr_xml, indentation_str, key, obj_id);
     } else {
         state.curr_xml = default_xml_tag;
@@ -308,7 +298,7 @@ pub fn to_if_req(json: &String) -> Result<String, String> {
         to_if_req_single(&char_val, &mut state);
     }
 
-    //panic!("ss");
+    panic!("ss");
 
     Result::Ok(state.curr_xml)
 }

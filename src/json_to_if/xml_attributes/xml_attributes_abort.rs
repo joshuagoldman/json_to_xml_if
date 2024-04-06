@@ -13,7 +13,7 @@ fn abort_attributes_case_obj(
     xml_attr_info: &XmlAttributeObjectInfo,
 ) {
     let obj_new_info = XmlAttributesType::NoAttribute(XmlAttributeNoAttributeInfo {
-        unique_key_ids: vec![xml_attr_info.unique_key_id.clone()],
+        unique_key_ids: xml_attr_info.unique_key_ids.clone(),
         object_id: Some(xml_attr_info.object_id.clone()),
     });
 
@@ -33,7 +33,6 @@ fn abort_attributes_case_attr(
 }
 
 pub fn abort_attributes(state: &mut State, basic_info: &XmlAttributesBasicInfo) {
-    panic!("aborted");
     match get_attributes_type_mut(state, basic_info) {
         Some(xml_attr_type) => match xml_attr_type.clone() {
             XmlAttributesType::ObjectAttributes(xml_attr_info) => {

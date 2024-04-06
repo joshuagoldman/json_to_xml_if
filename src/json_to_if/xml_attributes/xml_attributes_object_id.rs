@@ -9,8 +9,8 @@ use crate::json_to_if::{
 use super::{
     get_attributes_type, get_attributes_type_mut,
     models::{
-        XmlAttributeNoAttributeInfo, XmlAttributesBasicInfo, XmlAttributesType,
-        XmlAttributesUniqIds,
+        AttributeObjectPairs, XmlAttributeNoAttributeInfo, XmlAttributesBasicInfo,
+        XmlAttributesType, XmlAttributesUniqIds,
     },
 };
 
@@ -26,6 +26,11 @@ fn get_atrributes_object_id_case_no_attr_arr(
         unique_key_ids: new_xml_attr_info.unique_key_ids,
         object_id: object_id.clone(),
         attributes: Vec::new(),
+        current_item_index: 0,
+        object_pairs_info: AttributeObjectPairs {
+            has_attribute_obj: true,
+            has_none_attribute_obj: true,
+        },
     });
 
     *xml_attr_type = array_attributes_info;
@@ -42,9 +47,13 @@ fn get_atrributes_object_id_case_no_attr_obj(
 ) -> Option<XmlAttributesUniqIds> {
     let object_id = Uuid::new_v4().to_string();
     let object_attributes_info = XmlAttributesType::ObjectAttributes(XmlAttributeObjectInfo {
-        unique_key_id: xml_attr_info.unique_key_ids[0].clone(),
+        unique_key_ids: xml_attr_info.unique_key_ids.clone(),
         object_id: object_id.clone(),
         attributes: Vec::new(),
+        object_pairs_info: AttributeObjectPairs {
+            has_attribute_obj: true,
+            has_none_attribute_obj: true,
+        },
     });
 
     *xml_attr_type = object_attributes_info;
@@ -67,6 +76,11 @@ fn get_atrributes_object_id_case_not_in_dict_arr(
         unique_key_ids: unique_ids_vec,
         object_id: object_id.clone(),
         attributes: Vec::new(),
+        current_item_index: 0,
+        object_pairs_info: AttributeObjectPairs {
+            has_attribute_obj: true,
+            has_none_attribute_obj: false,
+        },
     });
 
     match state.xml_attributes_map.get_mut(&basic_info.attr_id) {
@@ -88,9 +102,13 @@ fn get_atrributes_object_id_case_not_in_dict_obj(
     let object_id = Uuid::new_v4().to_string();
     let unique_id = Uuid::new_v4().to_string();
     let obj_attributes_info = XmlAttributesType::ObjectAttributes(XmlAttributeObjectInfo {
-        unique_key_id: unique_id.to_string(),
+        unique_key_ids: vec![unique_id.clone()],
         object_id: object_id.clone(),
         attributes: Vec::new(),
+        object_pairs_info: AttributeObjectPairs {
+            has_attribute_obj: true,
+            has_none_attribute_obj: false,
+        },
     });
 
     match state.xml_attributes_map.get_mut(&basic_info.attr_id) {

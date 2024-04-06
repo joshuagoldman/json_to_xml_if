@@ -56,7 +56,7 @@ pub fn key_val_separator_case(char_val: &char, state: &mut State) {
     const RADIX: u32 = 10;
     match char_val {
         '"' => {
-            add_open_tag(state, true);
+            add_open_tag(state, true, false);
             state.update_token_type(TokenType::JsonObject(TokenStage::Content(
                 KeyValState::ValState(KeyValType::JsonStr(JsonStr::Open(String::new()))),
             )));
@@ -65,7 +65,7 @@ pub fn key_val_separator_case(char_val: &char, state: &mut State) {
             state.update_token_type(TokenType::JsonObject(TokenStage::Opening));
         }
         'n' => {
-            add_open_tag(state, true);
+            add_open_tag(state, true, false);
             state.update_token_type(TokenType::JsonObject(TokenStage::Content(
                 KeyValState::ValState(KeyValType::Null(JsonNull::Open("n".to_string()))),
             )));
@@ -75,7 +75,7 @@ pub fn key_val_separator_case(char_val: &char, state: &mut State) {
         }
         _ => match char_val.to_digit(RADIX) {
             Some(_) => {
-                add_open_tag(state, true);
+                add_open_tag(state, true, false);
                 state.update_token_type(TokenType::JsonObject(TokenStage::Content(
                     KeyValState::ValState(KeyValType::JsonNumber(char_val.to_string())),
                 )));

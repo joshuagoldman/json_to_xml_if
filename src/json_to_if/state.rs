@@ -17,7 +17,9 @@ use super::{
         xml_attributes_object_id::{
             get_attributes_object_id, get_attributes_object_id_for_closing_tag,
         },
-        xml_attributes_update::{update_xml_attribute_key, update_xml_attribute_value},
+        xml_attributes_update::{
+            update_xml_attribute_arr_index, update_xml_attribute_key, update_xml_attribute_value,
+        },
     },
 };
 
@@ -108,14 +110,14 @@ impl State {
                         .get()
                         .unwrap()
                         .replace(key.as_str(), "");
-                    println!("nesting state is: {:#?}", parent_field.nesting_state);
                     let nesting_state: NestingState;
                     let curr_stage: XmlAttributesStages;
                     if let TokenType::JsonObject(_) = parent_field.token_type {
                         curr_stage = XmlAttributesStages::Object(XmlAttributesObjectStages::Init);
                         nesting_state = NestingState::JsonObjectNestinState;
                     } else {
-                        curr_stage = XmlAttributesStages::Array(XmlAttributesArrayStages::Init);
+                        curr_stage =
+                            XmlAttributesStages::Array(XmlAttributesArrayStages::ObjectInit);
                         nesting_state = NestingState::JsonArrayNestingState;
                     };
                     let map_key = XmlAttributesMapKey {
@@ -124,7 +126,7 @@ impl State {
                     };
 
                     let basic_info = XmlAttributesBasicInfo {
-                        current_key: map_key,
+                        current_key: map_key.clone(),
                         curr_stage,
                         attr_id: parent_field.xml_attributes_map_id.clone(),
                     };
@@ -139,9 +141,20 @@ impl State {
         }
     }
 
-    pub fn get_obj_id_for_closing_tag(&mut self) -> Option<String> {
+    pub fn get_obj_id_for_closing_tag(&mut self, key: &String) -> Option<String> {
         match self.xml_attributes.clone() {
-            Some(xml_attr_info) => get_attributes_object_id_for_closing_tag(self, &xml_attr_info),
+            Some(xml_attr_info) => {
+                let xml_key_base = ATTRIBUTES_REGEX_EXPR
+                    .get()
+                    .unwrap()
+                    .replace(key.as_str(), "");
+
+                if xml_attr_info.current_key.attribute_base_name == xml_key_base {
+                    get_attributes_object_id_for_closing_tag(self, &xml_attr_info)
+                } else {
+                    None
+                }
+            }
             _ => None,
         }
     }
@@ -155,6 +168,9 @@ impl State {
             .get(&last_field.xml_attributes_map_id)
         {
             Some(att_map) => {
+                if last_field.key == None {
+                        println!("{:#?}", att_map);
+                    }
                 for (_, (_, xml_attr_info_type)) in att_map.iter().enumerate() {
                     match xml_attr_info_type {
                         xml_attributes::models::XmlAttributesType::ArrayTypeAttributes(
@@ -207,6 +223,12 @@ impl State {
     pub fn update_xml_attribute_value(&mut self, xml_atrribute_value: &String) {
         if let Some(basic_info) = self.xml_attributes.clone() {
             update_xml_attribute_value(self, &basic_info, xml_atrribute_value)
+        }
+    }
+
+    pub fn update_xml_attribute_arr_index(&mut self) {
+        if let Some(basic_info) = self.xml_attributes.clone() {
+            update_xml_attribute_arr_index(self, &basic_info)
         }
     }
 }

@@ -21,16 +21,20 @@
       "age": 32
     },
     {
-      "name": "Alice Williams",
+      "name_attributes": {
+        "namn": "Niclas",
+        "yrke": "Snuspetare"
+      },
+      "name": null,
       "age": null,
       "age_attributes": {
         "namn": "s",
         "yrke": "Snuspetare"
-      },
-      "name_attributes": {
-        "namn": "Niclas",
-        "yrke": "Snuspetare"
       }
+    },
+    {
+      "name": "Bob Johnson",
+      "age": 32
     },
     null
   ],

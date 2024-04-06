@@ -5,13 +5,18 @@ use super::{
     unexpected_character_error,
 };
 
+fn array_close_value_handling(state: &mut State, str_val: &String) {
+    add_tag_val(state, str_val);
+    add_close_tag(state, false);
+    state.fields.pop();
+    state.check_end_xml_attributes();
+}
+
 pub fn array_val_json_str_open_case(char_val: &char, state: &mut State, json_str: &String) {
     match char_val {
         '"' => {
-            add_tag_val(state, json_str);
-            state.fields.pop();
+            array_close_value_handling(state, json_str);
 
-            add_close_tag(state, false);
             state.update_token_type(TokenType::JsonArray(TokenStage::Content(
                 ArrayValType::JsonStr(JsonStr::Closing),
             )));
@@ -30,7 +35,6 @@ pub fn array_val_json_str_close_case(char_val: &char, state: &mut State) {
         ',' => state.update_to_item_separate_state(),
         ']' => {
             state.fields.pop();
-            state.check_end_xml_attributes();
             state.update_to_closed_state();
         }
         _ => unexpected_character_error(char_val, state),
@@ -45,18 +49,12 @@ pub fn array_val_json_number_open_case(
     let new_num_as_str = format!("{}{}", json_num_as_str, char_val);
     match char_val {
         ',' => {
-            add_tag_val(state, json_num_as_str);
-            state.fields.pop();
+            array_close_value_handling(state, json_num_as_str);
 
-            add_close_tag(state, false);
             state.update_to_item_separate_state();
         }
         ']' => {
-            add_tag_val(state, json_num_as_str);
-            state.fields.pop();
-
-            add_close_tag(state, false);
-            state.fields.pop();
+            array_close_value_handling(state, json_num_as_str);
 
             state.update_to_closed_state();
         }
@@ -75,10 +73,8 @@ pub fn array_val_json_null_case_open(char_val: &char, state: &mut State, curr_st
     let new_str_val = format!("{}{}", curr_str_val, char_val);
     match new_str_val == "null" {
         true => {
-            add_tag_val(state, &"null".to_string());
-            state.fields.pop();
+            array_close_value_handling(state, &"null".to_string());
 
-            add_close_tag(state, false);
             state.update_token_type(TokenType::JsonArray(TokenStage::Content(
                 ArrayValType::Null(JsonNull::Closing),
             )));
@@ -99,7 +95,6 @@ pub fn array_val_json_null_case_closed(char_val: &char, state: &mut State) {
         ',' => state.update_to_item_separate_state(),
         ']' => {
             state.fields.pop();
-            state.check_end_xml_attributes();
             state.update_to_closed_state();
         }
         _ => unexpected_character_error(char_val, state),

@@ -13,12 +13,15 @@ fn update_xmlattribute_key_arr(
         xml_attribute_value: String::new(),
         xml_atrribute_key: xml_atrribute_key.clone(),
     };
-    if array_type_info.attributes.len() == 0 {
+    if array_type_info.attributes.len() == 0
+        || array_type_info.attributes.len() - 1 != array_type_info.current_item_index
+    {
         array_type_info.attributes.push(vec![new_attr])
     } else {
         let last_indx = array_type_info.attributes.len() - 1;
         array_type_info.attributes[last_indx].push(new_attr);
     }
+    println!("{:#?}", array_type_info);
 }
 
 fn update_xmlattribute_key_obj(
@@ -63,16 +66,17 @@ fn update_xmlattribute_val_arr(
     xml_atrribute_value: &String,
     array_type_info: &mut XmlAttributeArrayinfo,
 ) {
-    match array_type_info.attributes.len() > 0 {
-        true => {
-            let last_indx_vec_of_vec = array_type_info.attributes.len() - 1;
-            if let true = array_type_info.attributes[last_indx_vec_of_vec].len() > 0 {
-                let last_indx_vec = array_type_info.attributes.len() - 1;
-                array_type_info.attributes[last_indx_vec_of_vec][last_indx_vec]
-                    .xml_attribute_value = xml_atrribute_value.clone();
-            }
+    if array_type_info.attributes.len() < 1 {
+        return;
+    }
+
+    if array_type_info.attributes.len() - 1 == array_type_info.current_item_index {
+        let last_indx_vec_of_vec = array_type_info.attributes.len() - 1;
+        if let true = array_type_info.attributes[last_indx_vec_of_vec].len() > 0 {
+            let last_indx_vec = array_type_info.attributes[last_indx_vec_of_vec].len() - 1;
+            array_type_info.attributes[last_indx_vec_of_vec][last_indx_vec].xml_attribute_value =
+                xml_atrribute_value.clone();
         }
-        _ => (),
     }
 }
 
@@ -113,6 +117,27 @@ pub fn update_xml_attribute_value(
     match get_attributes_type_mut(state, &basic_info) {
         Some(xml_attributes_info) => {
             update_xml_attribute_val_found_entry(xml_atrribute_value, xml_attributes_info);
+        }
+        None => (),
+    }
+}
+
+fn update_xmlattribute_arr_index(array_type_info: &mut XmlAttributeArrayinfo) {
+    array_type_info.current_item_index += 1;
+}
+pub fn update_xmlattribute_found_entry_arr_index(xml_attributes_info: &mut XmlAttributesType) {
+    match xml_attributes_info {
+        XmlAttributesType::ArrayTypeAttributes(array_type_info) => {
+            update_xmlattribute_arr_index(array_type_info)
+        }
+        _ => (),
+    }
+}
+
+pub fn update_xml_attribute_arr_index(state: &mut State, basic_info: &XmlAttributesBasicInfo) {
+    match get_attributes_type_mut(state, &basic_info) {
+        Some(xml_attributes_info) => {
+            update_xmlattribute_found_entry_arr_index(xml_attributes_info);
         }
         None => (),
     }

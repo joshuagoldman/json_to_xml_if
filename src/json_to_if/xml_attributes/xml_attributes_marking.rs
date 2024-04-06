@@ -1,6 +1,7 @@
 use uuid::Uuid;
 
 use crate::json_to_if::{
+    models::NestingState,
     state::State,
     xml_attributes::{
         self,
@@ -8,13 +9,20 @@ use crate::json_to_if::{
     },
 };
 
-use super::models::{XmlAttributeArrayinfo, XmlAttributeNoAttributeInfo, XmlAttributeObjectInfo};
+use super::models::{
+    AttributeObjectPairs, XmlAttributeArrayinfo, XmlAttributeNoAttributeInfo,
+    XmlAttributeObjectInfo,
+};
 
 fn get_attr_mark_case_attr_reg_arr(
     xml_attributes_info: &mut XmlAttributeArrayinfo,
 ) -> Option<String> {
     let unique_id = Uuid::new_v4().to_string();
     xml_attributes_info.unique_key_ids.push(unique_id.clone());
+    xml_attributes_info.object_pairs_info = AttributeObjectPairs {
+        has_none_attribute_obj: true,
+        has_attribute_obj: true,
+    };
     Some(unique_id)
 }
 
@@ -22,7 +30,11 @@ fn get_attr_mark_case_attr_reg_obj(
     xml_attributes_info: &mut XmlAttributeObjectInfo,
 ) -> Option<String> {
     let unique_id = Uuid::new_v4().to_string();
-    xml_attributes_info.unique_key_id = unique_id.clone();
+    xml_attributes_info.unique_key_ids.push(unique_id.clone());
+    xml_attributes_info.object_pairs_info = AttributeObjectPairs {
+        has_none_attribute_obj: true,
+        has_attribute_obj: true,
+    };
     Some(unique_id)
 }
 
@@ -60,12 +72,11 @@ pub fn get_attributes_mark(state: &mut State, key: &String) -> Option<String> {
         return None;
     }
     let parent_index = state.fields.len() - 2;
-    let last_index = state.fields.len() - 2;
     let parent_field = state.fields[parent_index.clone()].clone();
-    let last_field = state.fields[last_index.clone()].clone();
+
     let map_key = XmlAttributesMapKey {
         attribute_base_name: key.clone(),
-        attribute_type: last_field.nesting_state,
+        attribute_type: parent_field.nesting_state,
     };
 
     match state
@@ -84,7 +95,9 @@ pub fn get_attributes_mark(state: &mut State, key: &String) -> Option<String> {
                     get_attr_mark_case_only_none_attr_reg(key_infos)
                 }
             },
-            None => get_attr_mark_case_not_reg(state, &map_key, &last_field.xml_attributes_map_id),
+            None => {
+                get_attr_mark_case_not_reg(state, &map_key, &parent_field.xml_attributes_map_id)
+            }
         },
         None => None,
     }

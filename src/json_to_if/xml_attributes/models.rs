@@ -9,10 +9,17 @@ pub struct XmlAttribute {
 }
 
 #[derive(Debug, Clone)]
+pub struct AttributeObjectPairs {
+    pub has_attribute_obj: bool,
+    pub has_none_attribute_obj: bool,
+}
+
+#[derive(Debug, Clone)]
 pub struct XmlAttributeObjectInfo {
     pub attributes: Vec<XmlAttribute>,
-    pub unique_key_id: String,
+    pub unique_key_ids: Vec<String>,
     pub object_id: String,
+    pub object_pairs_info: AttributeObjectPairs,
 }
 
 #[derive(Debug, Clone)]
@@ -20,6 +27,8 @@ pub struct XmlAttributeArrayinfo {
     pub attributes: Vec<Vec<XmlAttribute>>,
     pub unique_key_ids: Vec<String>,
     pub object_id: String,
+    pub current_item_index: usize,
+    pub object_pairs_info: AttributeObjectPairs,
 }
 
 #[derive(Debug, Clone)]
