@@ -1,99 +1,87 @@
 {
-  "name": "John Doe is mysomosmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmdsa slkslknla sk lk
-  klk
-
-  ssdl",
-  "age": 30,
-  "address": {
-    "street": "123 Main St",
-	    "city": "New York",
-    "state": null
-  },
-  "address_attributes": {
-    "gender": "male",
-    "yrke": null
-  },
-  "tags": [22999, "banana", "orange"],
-  "tags_attributes": [
-    {
-      "styre": "monarki",
-      "lenadsstandard": "bra",
-      "flyg": null
-    },
+ "data": "<![CDATA[This is a CDATA value. It can contain special characters like <, >, &, etc.]]>",
+ "data_attributes": {
+   "name": "Lis",
+   "yrke": "sotare",
+   "yrke": "vetenskapsman"
+ },
+ "nodes": {
+  "node": [
+    -344,
+    22,
     null,
-    {
-      "styre": "monarki",
-      "lenadsstandard": "bra",
-      "flyg": null
-    },
-    {
-      "lenadsstandard": "bra",
-      "flyg": null
-    },
-    null
+    "Additional value"
   ],
-  "friends": [
-    {
-      "name": "Jane Smith",
-      "age": 28
-    },
-    {
-      "name": "Bob Johnson",
-      "age": 32
-    }
-  ],
-  "friends_attributes": [
-    {
-      "species": "snake",
-      "flavor": "citrus"
-    }
-  ],
-  "preferences_attributes": {
-    "question": "why",
-    "anwer": "meew I donno"
+  "node_attributes": [
+   {
+    "key": "1",
+    "attribute1": "value1",
+    "attribute2": "value2",
+    "attribute3": "value3"
+   },
+   {
+    "key": "2",
+    "attribute1": "value4",
+    "attribute2": "value5",
+    "attribute3": "value6"
+   },
+   {
+    "key": "3",
+    "attribute1": "value7",
+    "attribute2": "value8",
+    "attribute3": "value9"
+   }
+  ]
+ },
+ "randomNode": [
+  {
+   "childNode": null
   },
-  "preferences": {
-    "music": ["ss", "pop"],
-    "music_attributes": [
-      {
-        "user": "admin",
-        "user_attributes": {
-          "fisk": "lax",
-          "mat": "hamburgare"
-        },
-        "user": [
-          32,
-          "joshua"
-        ],
-        "user_attributes": [
-          {
-            "name": "jakke"
-          },
-          {
-            "kroppsdel": "hals"
-          }
-        ],
-        "life": "short
-        kind of"
-      },
-      {
-        "height": "tall"
-      },
-      {
-        "livslust": "stor"
-      }
+  {
+   "childNode": null,
+   "nodes": {
+    "node": [
+      null,
+      null,
+      "Additional value"
     ],
-    "movies": ["action", "comedy"],
-    "colors": ["blue", null],
-    "colors_attributes": [
-      {
-        "floor": "third",
-        "height": "low"
-      },
-      {
-        "level": "third",
-        "preference": "snooth"
-      }
+    "node_attributes": [
+     {
+      "key": "1",
+      "attribute1": "value1",
+      "attribute2": "value2",
+      "attribute3": "value3"
+     },
+     {
+      "key": "2",
+      "attribute1": "value4",
+      "attribute2": "value5",
+      "attribute3": "value6"
+     },
+     {
+      "key": "3",
+      "attribute1": "value7",
+      "attribute2": "value8",
+      "attribute3": "value9"
+     }
     ]
+   },
+   "nodes_attributes": {
+     "vlocity": "high man, really high",
+     "gender": "male"
+   }
   }
+ ],
+ "randomNode_attributes": [
+  {
+   "attribute1": "randomValue1",
+   "attribute2": "randomValue2",
+   "attribute3": "randomValue3"
+  },
+  {
+   "attribute1": "randomValue1",
+   "attribute2": "randomValue2",
+   "attribute3": "randomValue3"
+  }
+ ]
 }

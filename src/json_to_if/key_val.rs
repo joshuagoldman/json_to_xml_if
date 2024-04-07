@@ -8,7 +8,7 @@ use crate::json_to_if::{
 use super::{
     models::{TokenStage, TokenStageKey, TokenType},
     unexpected_character_error,
-    xml_tag::{add_close_tag, add_tag_val},
+    xml_tag::{add_close_tag, add_close_tag_val_empty, add_open_tag_val_empty, add_tag_val},
     State,
 };
 
@@ -65,13 +65,19 @@ pub fn key_val_separator_case(char_val: &char, state: &mut State) {
             state.update_token_type(TokenType::JsonObject(TokenStage::Opening));
         }
         'n' => {
-            add_open_tag(state, true, XmlOpenTagOptions::ObjectSimpleVal);
+            add_open_tag_val_empty(state, XmlOpenTagOptions::ObjectSimpleVal);
             state.update_token_type(TokenType::JsonObject(TokenStage::Content(
                 KeyValState::ValState(KeyValType::Null(JsonNull::Open("n".to_string()))),
             )));
         }
         '[' => {
             state.update_token_type(TokenType::JsonArray(TokenStage::Opening));
+        }
+        '-' => {
+            add_open_tag(state, true, XmlOpenTagOptions::ObjectSimpleVal);
+            state.update_token_type(TokenType::JsonObject(TokenStage::Content(
+                KeyValState::ValState(KeyValType::JsonNumber(char_val.to_string())),
+            )));
         }
         _ => match char_val.to_string().parse::<i32>() {
             Ok(_) => {
@@ -154,8 +160,8 @@ pub fn key_val_json_null_case_open(char_val: &char, state: &mut State, curr_str_
     let new_str_val = format!("{}{}", curr_str_val, char_val);
     match new_str_val == "null" {
         true => {
-            add_tag_val(state, &"null".to_string());
-            add_close_tag(state, false);
+            add_tag_val(state, &String::new());
+            add_close_tag_val_empty(state);
             state.fields.pop();
 
             state.update_token_type(TokenType::JsonObject(TokenStage::Content(

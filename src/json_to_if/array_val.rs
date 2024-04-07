@@ -4,12 +4,16 @@ use super::{
     models::{ArrayValType, JsonNull, JsonStr, TokenStage, TokenType},
     state::State,
     unexpected_character_error,
-    xml_tag::{add_close_tag, add_tag_val},
+    xml_tag::{add_close_tag, add_close_tag_val_empty, add_tag_val},
 };
 
 fn array_close_value_handling(state: &mut State, str_val: &String) {
     add_tag_val(state, str_val);
-    add_close_tag(state, false);
+    if str_val.is_empty() {
+        add_close_tag_val_empty(state);
+    } else {
+        add_close_tag(state, false);
+    }
     state.fields.pop();
 }
 
@@ -59,7 +63,7 @@ pub fn array_val_json_number_open_case(
 
             state.update_to_closed_state();
         }
-        _ => match char_val.to_string().parse::<i32>() {
+        _ => match new_num_as_str.parse::<i32>() {
             Ok(_) => {
                 state.update_token_type(TokenType::JsonArray(TokenStage::Content(
                     ArrayValType::JsonNumber(new_num_as_str),
@@ -74,7 +78,7 @@ pub fn array_val_json_null_case_open(char_val: &char, state: &mut State, curr_st
     let new_str_val = format!("{}{}", curr_str_val, char_val);
     match new_str_val == "null" {
         true => {
-            array_close_value_handling(state, &"null".to_string());
+            array_close_value_handling(state, &String::new());
 
             state.update_token_type(TokenType::JsonArray(TokenStage::Content(
                 ArrayValType::Null(JsonNull::Closing),
