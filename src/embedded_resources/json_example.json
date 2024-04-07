@@ -11,9 +11,17 @@
   },
   "address_attributes": {
     "gender": "male",
-    "yrke": "Snuspetare"
+    "yrke": null
   },
   "tags": [22999, "banana", "orange"],
+  "tags_attributes": [
+    {
+      "styre": "monarki",
+      "lenadsstandard": "bra",
+      "flyg": null
+    },
+    null
+  ],
   "friends": [
     {
       "name": "Jane Smith",

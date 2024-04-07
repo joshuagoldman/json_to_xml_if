@@ -32,7 +32,6 @@ pub fn array_attributes_stage_null(char_val: &char, state: &mut State, curr_str_
     let new_str_val = format!("{}{}", curr_str_val, char_val);
     match new_str_val == "null" {
         true => {
-            state.update_xml_attribute_key(&String::new());
             state.update_state(XmlAttributesStages::Array(
                 XmlAttributesArrayStages::ObjectEnd,
             ));
@@ -40,7 +39,7 @@ pub fn array_attributes_stage_null(char_val: &char, state: &mut State, curr_str_
         _ => match "null".contains(new_str_val.as_str()) {
             true => {
                 state.update_state(XmlAttributesStages::Array(
-                    XmlAttributesArrayStages::NullValue("n".to_string()),
+                    XmlAttributesArrayStages::NullValue(new_str_val),
                 ));
             }
             false => {
@@ -88,7 +87,36 @@ pub fn array_attributes_stage_key_val_separator_case(char_val: &char, state: &mu
                 XmlAttributeKeyValueStages::Open(String::new()),
             )));
         }
+        'n' => {
+            state.update_state(XmlAttributesStages::Array(
+                XmlAttributesArrayStages::ValueOfKeyNull("n".to_string()),
+            ));
+        }
         _ => state.abort_xml_attributes(),
+    }
+}
+
+pub fn array_attributes_null_value_open_case(
+    char_val: &char,
+    state: &mut State,
+    curr_str_val: &String,
+) {
+    let new_str_val = format!("{}{}", curr_str_val, char_val);
+    match new_str_val == "null" {
+        true => {
+            state.update_xml_attribute_value(&String::new());
+            state.update_state(XmlAttributesStages::Array(XmlAttributesArrayStages::Value(
+                XmlAttributeKeyValueStages::Closed,
+            )))
+        }
+        _ => match "null".contains(new_str_val.as_str()) {
+            true => {
+                state.update_state(XmlAttributesStages::Array(
+                    XmlAttributesArrayStages::ValueOfKeyNull(new_str_val),
+                ));
+            }
+            false => state.abort_xml_attributes(),
+        },
     }
 }
 
@@ -158,6 +186,9 @@ pub fn array_attributes_stage_object_separator(char_val: &char, state: &mut Stat
                 XmlAttributesArrayStages::ObjectInit,
             ));
         }
+        'n' => state.update_state(XmlAttributesStages::Array(
+            XmlAttributesArrayStages::NullValue("n".to_string()),
+        )),
         _ => state.abort_xml_attributes(),
     }
 }

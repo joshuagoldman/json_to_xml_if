@@ -4,8 +4,9 @@ use self::{
         XmlAttributesObjectStages, XmlAttributesType,
     },
     xml_attributes_array::{
-        array_attributes_stage_init, array_attributes_stage_key_closed,
-        array_attributes_stage_key_open, array_attributes_stage_key_val_field_separator,
+        array_attributes_null_value_open_case, array_attributes_stage_init,
+        array_attributes_stage_key_closed, array_attributes_stage_key_open,
+        array_attributes_stage_key_val_field_separator,
         array_attributes_stage_key_val_separator_case, array_attributes_stage_null,
         array_attributes_stage_object_end, array_attributes_stage_object_init,
         array_attributes_stage_object_separator, array_attributes_stage_value_closed,
@@ -154,6 +155,9 @@ fn xml_attributes_state_attributes_array(
         }
         XmlAttributesArrayStages::NullValue(curr_str_val) => {
             array_attributes_stage_null(char_val, state, &curr_str_val)
+        }
+        XmlAttributesArrayStages::ValueOfKeyNull(curr_str_val) => {
+            array_attributes_null_value_open_case(char_val, state, &curr_str_val)
         }
     }
 }

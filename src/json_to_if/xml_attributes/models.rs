@@ -60,6 +60,7 @@ pub enum XmlAttributesArrayStages {
     KeyValSeparator,
     NullValue(String),
     Value(XmlAttributeKeyValueStages),
+    ValueOfKeyNull(String),
     KeyValFieldSeparator,
     ObjectEnd,
     ObjectSeparator,
