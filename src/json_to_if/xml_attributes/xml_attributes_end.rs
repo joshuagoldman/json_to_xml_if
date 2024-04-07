@@ -121,35 +121,55 @@ fn construct_xml_attributes_str(xml_attributes_info: &XmlAttributeObjectInfo) ->
 }
 
 pub fn remove_str_chunk_by_key(str_val: &mut String, str_key: &String) {
-    // println!("{:#?}", str_key);
-    // print!("{}", str_val);
     let mut found_indices = str_val.match_indices(str_key);
     let mut found_indices_ints = found_indices
         .into_iter()
         .map(|(indx, _)| indx)
         .collect::<Vec<usize>>();
 
+    let last_found_indice = found_indices_ints.last().unwrap().clone();
+    let indentation_str_val = str_val
+        .chars()
+        .skip(last_found_indice + str_key.len())
+        .take_while(|x| x.is_whitespace())
+        .collect::<String>();
+
     while found_indices_ints.len() > 1 {
-        *str_val = str_val
-            .chars()
-            .take(found_indices_ints[0])
-            .chain(
-                str_val
-                    .chars()
-                    .skip(found_indices_ints[1] + str_key.len())
-                    .collect::<String>()
-                    .chars(),
-            )
-            .collect();
+        if found_indices_ints.len() == 2 {
+            *str_val = str_val
+                .chars()
+                .take(found_indices_ints[0])
+                .collect::<String>()
+                .trim_end()
+                .chars()
+                .chain(
+                    indentation_str_val.chars().chain(
+                        str_val
+                            .chars()
+                            .skip(found_indices_ints[1] + str_key.len())
+                            .collect::<String>()
+                            .trim_start()
+                            .chars(),
+                    ),
+                )
+                .collect();
+        } else {
+            *str_val = str_val
+                .chars()
+                .take(found_indices_ints[0])
+                .chain(
+                    str_val
+                        .chars()
+                        .skip(found_indices_ints[1] + str_key.len())
+                        .collect::<String>()
+                        .chars(),
+                )
+                .collect();
+        }
         found_indices = str_val.match_indices(str_key);
         found_indices_ints = found_indices
             .into_iter()
             .map(|(indx, _)| indx)
             .collect::<Vec<usize>>();
     }
-
-    *str_val = str_val
-        .split("\n")
-        .filter(|x| !x.trim().is_empty())
-        .join("\n")
 }

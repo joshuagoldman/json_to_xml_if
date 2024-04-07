@@ -135,10 +135,6 @@ mod tests {
             .to_string();
         remove_str_chunk_by_key(
             &mut test_str,
-            &"814b194a-faf5-432c-9f4c-e402a89a94d6".to_string(),
-        );
-        remove_str_chunk_by_key(
-            &mut test_str,
             &"4e315479-9c93-4295-9b06-d604a4bdcc76".to_string(),
         );
 
