@@ -7,7 +7,7 @@ use crate::json_to_if::{
 use super::{
     models::{
         XmlAttributesArrayStages, XmlAttributesBasicInfo, XmlAttributesMapKey,
-        XmlAttributesObjectStages, XmlAttributesStages, XmlAttributesUniqIds,
+        XmlAttributesObjectStages, XmlAttributesStages,
     },
     xml_attributes_object_id::get_attributes_object_id,
 };
@@ -15,7 +15,7 @@ use super::{
 pub fn init_xml_attributes(
     state: &mut State,
     field_pos_with_rel_map: FieldPositionNumForMap,
-) -> Option<XmlAttributesUniqIds> {
+) -> Option<String> {
     if state.fields.len() < field_pos_with_rel_map.xml_attr_map_num {
         return None;
     }
@@ -34,7 +34,7 @@ pub fn init_xml_attributes(
                     .replace(key.as_str(), "");
                 let nesting_state: NestingState;
                 let curr_stage: XmlAttributesStages;
-                if let XmlOpenTagOptions::ArrayValOpening = check_if_nested_in_array(state) {
+                if let XmlOpenTagOptions::ObjectInArray = check_if_nested_in_array(state) {
                     curr_stage = XmlAttributesStages::Array(XmlAttributesArrayStages::ObjectInit);
                     nesting_state = NestingState::JsonArrayNestingState;
                 } else {

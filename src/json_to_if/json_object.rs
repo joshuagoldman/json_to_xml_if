@@ -17,7 +17,7 @@ pub fn json_object_open_case(char_val: &char, state: &mut State) {
             )));
         }
         '}' => {
-            add_open_tag(state, true, XmlOpenTagOptions::ObjectOpening);
+            add_open_tag(state, true, XmlOpenTagOptions::ObjectInObject);
             add_close_tag(state, false);
             state.check_end_xml_attributes();
             state.fields.pop();

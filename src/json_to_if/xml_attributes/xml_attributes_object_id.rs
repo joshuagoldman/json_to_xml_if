@@ -10,37 +10,23 @@ use super::{
     get_attributes_type, get_attributes_type_mut,
     models::{
         AttributeObjectPairs, XmlAttributeNoAttributeInfo, XmlAttributesBasicInfo,
-        XmlAttributesType, XmlAttributesUniqIds,
+        XmlAttributesType,
     },
 };
 
 fn get_atrributes_object_id_case_already_arr_attr(
-    xml_attr_type: &mut XmlAttributesType,
     xml_attr_info: &XmlAttributeArrayinfo,
-) -> Option<XmlAttributesUniqIds> {
-    println!("came here");
-    let unique_id = Uuid::new_v4().to_string();
-    let mut new_xml_attr_info = xml_attr_info.clone();
-    new_xml_attr_info.unique_key_ids.push(unique_id.clone());
-
-    *xml_attr_type = XmlAttributesType::ArrayTypeAttributes(new_xml_attr_info.clone());
-
-    Some(XmlAttributesUniqIds {
-        attr_id: unique_id.clone(),
-        attr_object_id: new_xml_attr_info.object_id,
-    })
+) -> Option<String> {
+    Some(xml_attr_info.object_id.clone())
 }
 
 fn get_atrributes_object_id_case_no_attr_arr(
     xml_attr_type: &mut XmlAttributesType,
     xml_attr_info: &XmlAttributeNoAttributeInfo,
-) -> Option<XmlAttributesUniqIds> {
-    let unique_id = Uuid::new_v4().to_string();
+) -> Option<String> {
     let object_id = Uuid::new_v4().to_string();
-    let mut new_xml_attr_info = xml_attr_info.clone();
-    new_xml_attr_info.unique_key_ids.push(unique_id.clone());
     let array_attributes_info = XmlAttributesType::ArrayTypeAttributes(XmlAttributeArrayinfo {
-        unique_key_ids: new_xml_attr_info.unique_key_ids,
+        unique_key_ids: xml_attr_info.unique_key_ids.clone(),
         object_id: object_id.clone(),
         attributes: Vec::new(),
         current_item_index: 0,
@@ -52,16 +38,13 @@ fn get_atrributes_object_id_case_no_attr_arr(
 
     *xml_attr_type = array_attributes_info;
 
-    Some(XmlAttributesUniqIds {
-        attr_id: unique_id.clone(),
-        attr_object_id: object_id.clone(),
-    })
+    Some(object_id)
 }
 
 fn get_atrributes_object_id_case_no_attr_obj(
     xml_attr_type: &mut XmlAttributesType,
     xml_attr_info: &XmlAttributeNoAttributeInfo,
-) -> Option<XmlAttributesUniqIds> {
+) -> Option<String> {
     let object_id = Uuid::new_v4().to_string();
     let object_attributes_info = XmlAttributesType::ObjectAttributes(XmlAttributeObjectInfo {
         unique_key_ids: xml_attr_info.unique_key_ids.clone(),
@@ -75,22 +58,17 @@ fn get_atrributes_object_id_case_no_attr_obj(
 
     *xml_attr_type = object_attributes_info;
 
-    Some(XmlAttributesUniqIds {
-        attr_id: xml_attr_info.clone().unique_key_ids[0].clone(),
-        attr_object_id: object_id,
-    })
+    Some(object_id)
 }
 
 fn get_atrributes_object_id_case_not_in_dict_arr(
     state: &mut State,
     basic_info: &XmlAttributesBasicInfo,
-) -> Option<XmlAttributesUniqIds> {
+) -> Option<String> {
     let object_id = Uuid::new_v4().to_string();
-    let unique_id = Uuid::new_v4().to_string();
-    let unique_ids_vec = vec![unique_id.to_string()];
 
     let array_attributes_info = XmlAttributesType::ArrayTypeAttributes(XmlAttributeArrayinfo {
-        unique_key_ids: unique_ids_vec,
+        unique_key_ids: vec![],
         object_id: object_id.clone(),
         attributes: Vec::new(),
         current_item_index: 0,
@@ -106,16 +84,13 @@ fn get_atrributes_object_id_case_not_in_dict_arr(
         }
         None => (),
     }
-    Some(XmlAttributesUniqIds {
-        attr_id: unique_id,
-        attr_object_id: object_id,
-    })
+    Some(object_id.clone())
 }
 
 fn get_atrributes_object_id_case_not_in_dict_obj(
     state: &mut State,
     basic_info: &XmlAttributesBasicInfo,
-) -> Option<XmlAttributesUniqIds> {
+) -> Option<String> {
     let object_id = Uuid::new_v4().to_string();
     let unique_id = Uuid::new_v4().to_string();
     let obj_attributes_info = XmlAttributesType::ObjectAttributes(XmlAttributeObjectInfo {
@@ -134,16 +109,13 @@ fn get_atrributes_object_id_case_not_in_dict_obj(
         }
         None => (),
     }
-    Some(XmlAttributesUniqIds {
-        attr_id: unique_id.clone(),
-        attr_object_id: object_id.clone(),
-    })
+    Some(object_id)
 }
 
 pub fn get_attributes_object_id(
     state: &mut State,
     basic_info: &XmlAttributesBasicInfo,
-) -> Option<XmlAttributesUniqIds> {
+) -> Option<String> {
     match get_attributes_type_mut(state, basic_info) {
         Some(xml_attr_type) => match (
             xml_attr_type.clone(),
@@ -160,7 +132,7 @@ pub fn get_attributes_object_id(
             (
                 XmlAttributesType::ArrayTypeAttributes(xml_attr_info),
                 NestingState::JsonArrayNestingState,
-            ) => get_atrributes_object_id_case_already_arr_attr(xml_attr_type, &xml_attr_info),
+            ) => get_atrributes_object_id_case_already_arr_attr(&xml_attr_info),
             _ => None,
         },
         _ => match basic_info.current_key.attribute_type {

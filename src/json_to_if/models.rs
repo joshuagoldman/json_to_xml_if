@@ -91,8 +91,8 @@ pub enum NestingState {
 pub enum XmlOpenTagOptions {
     ArraySimpleVal,
     ObjectSimpleVal,
-    ObjectOpening,
-    ArrayValOpening,
+    ObjectInObject,
+    ObjectInArray,
 }
 
 #[derive(Clone, Debug)]

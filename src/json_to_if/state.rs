@@ -8,7 +8,6 @@ use super::{
         self,
         models::{
             XmlAttributesBasicInfo, XmlAttributesMapKey, XmlAttributesStages, XmlAttributesType,
-            XmlAttributesUniqIds,
         },
         xml_attributes_abort::abort_attributes,
         xml_attributes_end::{
@@ -97,7 +96,7 @@ impl State {
     pub fn check_init_xml_attributes(
         &mut self,
         field_index_for_map: FieldPositionNumForMap,
-    ) -> Option<XmlAttributesUniqIds> {
+    ) -> Option<String> {
         init_xml_attributes(self, field_index_for_map)
     }
 
@@ -167,6 +166,7 @@ impl State {
     pub fn abort_xml_attributes(&mut self) {
         if let Some(xml_attr_basic_info) = self.xml_attributes.clone() {
             abort_attributes(self, &xml_attr_basic_info);
+            self.xml_attributes = None;
         }
     }
 

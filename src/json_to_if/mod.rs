@@ -238,7 +238,7 @@ pub fn to_if_req(json: &String) -> Result<String, String> {
         to_if_req_single(&char_val, &mut state);
     }
 
-    //panic!("ss");
+    // panic!("ss");
 
     Result::Ok(state.curr_xml)
 }

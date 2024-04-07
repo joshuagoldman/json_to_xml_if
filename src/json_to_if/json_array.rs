@@ -15,6 +15,18 @@ fn new_arr_value_handling(state: &mut State) {
     add_open_tag(state, true, XmlOpenTagOptions::ArraySimpleVal);
 }
 
+fn check_null_val_is_attr(state: &mut State) {
+    if let Some(_) = state.xml_attributes {
+        state.update_nesting_state(NestingState::JsonArrayNestingState);
+        let mut field = Field::new(&mut state.xml_attributes_map);
+        field.key = state.fields[state.fields.len() - 1].key.clone();
+        state.fields.push(field);
+        add_open_tag(state, true, XmlOpenTagOptions::ObjectInArray);
+    } else {
+        new_arr_value_handling(state)
+    }
+}
+
 pub fn json_array_open_case(char_val: &char, state: &mut State) {
     match char_val {
         '"' => {
@@ -40,7 +52,7 @@ pub fn json_array_open_case(char_val: &char, state: &mut State) {
             state.update_token_type(TokenType::JsonArray(TokenStage::Closing));
         }
         'n' => {
-            new_arr_value_handling(state);
+            check_null_val_is_attr(state);
 
             state.update_token_type(TokenType::JsonArray(TokenStage::Content(
                 ArrayValType::Null(JsonNull::Open("n".to_string())),
@@ -91,7 +103,7 @@ pub fn json_array_item_separator_case(char_val: &char, state: &mut State) {
             state.update_token_type(TokenType::JsonObject(TokenStage::Opening));
         }
         'n' => {
-            new_arr_value_handling(state);
+            check_null_val_is_attr(state);
 
             state.update_token_type(TokenType::JsonArray(TokenStage::Content(
                 ArrayValType::Null(JsonNull::Open("n".to_string())),

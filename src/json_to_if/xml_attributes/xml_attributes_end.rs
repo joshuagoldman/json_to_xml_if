@@ -9,6 +9,11 @@ pub fn check_end_xml_attributes_array_handling(
     xml_attributes_array_info: XmlAttributeArrayinfo,
 ) {
     let xml_attibutes_vec_str = construct_xml_attributes_str_vec(&xml_attributes_array_info);
+    if xml_attibutes_vec_str.last().unwrap().contains("styre") {
+        println!("{:#?}", xml_attributes_array_info);
+        println!("{}", state.curr_xml);
+    }
+
     if xml_attibutes_vec_str.len() != 0
         && xml_attributes_array_info
             .object_pairs_info
@@ -116,8 +121,8 @@ fn construct_xml_attributes_str(xml_attributes_info: &XmlAttributeObjectInfo) ->
 }
 
 pub fn remove_str_chunk_by_key(str_val: &mut String, str_key: &String) {
-    println!("{:#?}", str_key);
-    print!("{}", str_val);
+    // println!("{:#?}", str_key);
+    // print!("{}", str_val);
     let mut found_indices = str_val.match_indices(str_key);
     let mut found_indices_ints = found_indices
         .into_iter()

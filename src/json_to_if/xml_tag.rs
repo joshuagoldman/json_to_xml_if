@@ -11,10 +11,10 @@ fn tag_options_attr_decision(
     positions_for_attr_map: FieldPositionNumForMap,
 ) {
     let default_xml_tag = format!("{}{}<{}>", state.curr_xml, indentation_str, key);
-    if let Some(ids_info) = state.check_init_xml_attributes(positions_for_attr_map.clone()) {
+    if let Some(object_id) = state.check_init_xml_attributes(positions_for_attr_map.clone()) {
         state.curr_xml = format!(
-            "{}{}{}<{} {}>",
-            state.curr_xml, indentation_str, ids_info.attr_object_id, key, ids_info.attr_id
+            "{}{}{}<{}>",
+            state.curr_xml, indentation_str, object_id, key
         );
     } else if let Some(attr_id) = get_attributes_mark(state, key, positions_for_attr_map) {
         state.curr_xml = format!("{}{}<{} {}>", state.curr_xml, indentation_str, key, attr_id);
@@ -25,14 +25,14 @@ fn tag_options_attr_decision(
 
 pub fn check_if_nested_in_array(state: &mut State) -> XmlOpenTagOptions {
     if state.fields.len() < 2 {
-        return XmlOpenTagOptions::ObjectOpening;
+        return XmlOpenTagOptions::ObjectInObject;
     }
 
     let index = state.fields.len() - 2;
     if state.fields[index].nesting_state == NestingState::JsonArrayNestingState {
-        return XmlOpenTagOptions::ArrayValOpening;
+        return XmlOpenTagOptions::ObjectInArray;
     }
-    XmlOpenTagOptions::ObjectOpening
+    XmlOpenTagOptions::ObjectInObject
 }
 
 pub fn add_open_tag(state: &mut State, indent: bool, tag_options: XmlOpenTagOptions) {
@@ -67,7 +67,7 @@ pub fn add_open_tag(state: &mut State, indent: bool, tag_options: XmlOpenTagOpti
                 state.curr_xml = format!("{}{}<{}>", state.curr_xml, indentation_str, key);
             }
         }
-        XmlOpenTagOptions::ArrayValOpening => {
+        XmlOpenTagOptions::ObjectInArray => {
             tag_options_attr_decision(
                 state,
                 &indentation_str,
