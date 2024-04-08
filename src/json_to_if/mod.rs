@@ -232,13 +232,13 @@ fn to_if_req_single(char_val: &char, state: &mut State) {
     xml_attributes_check_state(char_val, state);
 }
 
-pub fn to_if_req(json: &String) -> Result<String, String> {
+pub fn to_if_req(json: &String, to_snake_case: bool, root_name: String) -> Result<String, String> {
     let mut state = State::new();
+    state.to_snake_case = to_snake_case;
+    state.root_name = root_name;
     for (_, char_val) in json.chars().enumerate() {
         to_if_req_single(&char_val, &mut state);
     }
 
-    // panic!("ss");
-
-    Result::Ok(state.curr_xml)
+    Result::Ok(state.curr_xml.trim().to_string())
 }

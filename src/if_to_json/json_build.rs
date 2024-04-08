@@ -1,3 +1,4 @@
+use convert_case::Casing;
 use iter_tools::Itertools;
 
 use super::{NodeStrResult, State, XmlAttribute};
@@ -45,6 +46,11 @@ pub fn build_array_json(nodes: &Vec<NodeStrResult>, state: &mut State) -> String
     let indent_str = state.get_indentation_str();
     let indent_str_inner = format!("{} ", indent_str);
     let key = nodes[0].key.clone();
+    let key_formated = if state.to_camel_case {
+        key.to_case(convert_case::Case::Camel)
+    } else {
+        key.clone()
+    };
 
     let array_components = nodes
         .iter()
@@ -71,16 +77,20 @@ pub fn build_array_json(nodes: &Vec<NodeStrResult>, state: &mut State) -> String
     if !all_attr_null {
         let xml_attributes_str_format = format!(
             "{}\"{}_attributes\": [\n{}\n{}]",
-            indent_str_inner, key, xml_attributes_str, indent_str_inner
+            indent_str_inner, key_formated, xml_attributes_str, indent_str_inner
         );
         format!(
             "{}\"{}\": [\n{}\n{}],\n{}",
-            indent_str_inner, key, array_components, indent_str_inner, xml_attributes_str_format
+            indent_str_inner,
+            key_formated,
+            array_components,
+            indent_str_inner,
+            xml_attributes_str_format
         )
     } else {
         format!(
             "{}\"{}\": [\n{}\n{}]",
-            indent_str_inner, key, array_components, indent_str_inner
+            indent_str_inner, key_formated, array_components, indent_str_inner
         )
     }
 }
@@ -101,17 +111,23 @@ pub fn build_object_json(node: &NodeStrResult, state: &mut State) -> String {
 
     let str_value_new = node.str_value.trim_start().to_string();
 
+    let key_formated = if state.to_camel_case {
+        node.key.to_case(convert_case::Case::Camel)
+    } else {
+        node.key.clone()
+    };
+
     if xml_attributes_str != "null" {
         let xml_attributes_str_format = format!(
             "{}\"{}_attributes\": {}",
-            indent_str, node.key, xml_attributes_str_new
+            indent_str, key_formated, xml_attributes_str_new
         );
         format!(
             "{}\"{}\": {},\n{}",
-            indent_str, node.key, str_value_new, xml_attributes_str_format
+            indent_str, key_formated, str_value_new, xml_attributes_str_format
         )
     } else {
-        format!("{}\"{}\": {}", indent_str, node.key, str_value_new)
+        format!("{}\"{}\": {}", indent_str, key_formated, str_value_new)
     }
 }
 

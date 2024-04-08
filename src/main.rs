@@ -40,7 +40,7 @@ mod tests {
             .set(Regex::new(r"_(A|a)(T|t)(T|t)(R|r)(I|i)(B|b)(U|u)(T|t)(E|e)(S|s)$").unwrap())
             .unwrap();
         let json = include_str!("./embedded_resources/json_example.json");
-        let result = to_if_req(&json.to_string());
+        let result = to_if_req(&json.to_string(), false, "parameters".to_string());
 
         match result {
             Ok(ok_res) => {
@@ -56,7 +56,7 @@ mod tests {
     #[test]
     fn test_parse_to_json() {
         let json = include_str!("./embedded_resources/xml_example.xml");
-        let result = if_to_json(&json.to_string());
+        let result = if_to_json(&json.to_string(), true);
 
         match result {
             Ok(ok_res) => {

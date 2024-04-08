@@ -9,5 +9,6 @@ edition = "2021"
 regex = "1.10.4"
 iter_tools = "0.15.0"
 uuid = {version = "1.8.0", features = ["v4"]}
+convert_case = "0.6.0"
 
 

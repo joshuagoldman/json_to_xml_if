@@ -1,3 +1,5 @@
+use convert_case::Casing;
+
 use super::{
     models::{FieldPositionNumForMap, NestingState, XmlOpenTagOptions},
     state::State,
@@ -17,19 +19,25 @@ fn tag_options_attr_decision(
         ">".to_string()
     };
 
+    let key_formated = if state.to_snake_case {
+        key.to_case(convert_case::Case::Snake)
+    } else {
+        key.clone()
+    };
+
     let default_xml_tag = format!(
         "{}{}<{}{}",
-        state.curr_xml, indentation_str, key, is_empty_val_str
+        state.curr_xml, indentation_str, key_formated, is_empty_val_str
     );
     if let Some(object_id) = state.check_init_xml_attributes(positions_for_attr_map.clone()) {
         state.curr_xml = format!(
             "{}{}{}<{}{}",
-            state.curr_xml, indentation_str, object_id, key, is_empty_val_str
+            state.curr_xml, indentation_str, object_id, key_formated, is_empty_val_str
         );
     } else if let Some(attr_id) = get_attributes_mark(state, key, positions_for_attr_map) {
         state.curr_xml = format!(
             "{}{}<{} {}{}",
-            state.curr_xml, indentation_str, key, attr_id, is_empty_val_str
+            state.curr_xml, indentation_str, key_formated, attr_id, is_empty_val_str
         );
     } else {
         state.curr_xml = default_xml_tag;
@@ -64,7 +72,7 @@ pub fn add_open_tag_general(
 ) {
     state.curr_indent += 1;
     let key = if state.fields.len() == 1 {
-        "parameters".to_string()
+        state.root_name.clone()
     } else {
         state.fields[state.fields.len() - 1]
             .key
@@ -83,6 +91,12 @@ pub fn add_open_tag_general(
         ">".to_string()
     };
 
+    let key_formated = if state.to_snake_case {
+        key.to_case(convert_case::Case::Snake)
+    } else {
+        key.clone()
+    };
+
     match tag_options {
         XmlOpenTagOptions::ArraySimpleVal => {
             if let Some(attr_id) = get_attributes_mark(
@@ -95,12 +109,12 @@ pub fn add_open_tag_general(
             ) {
                 state.curr_xml = format!(
                     "{}{}<{} {}{}",
-                    state.curr_xml, indentation_str, key, attr_id, is_empty_val_str
+                    state.curr_xml, indentation_str, key_formated, attr_id, is_empty_val_str
                 );
             } else {
                 state.curr_xml = format!(
                     "{}{}<{}{}",
-                    state.curr_xml, indentation_str, key, is_empty_val_str
+                    state.curr_xml, indentation_str, key_formated, is_empty_val_str
                 );
             }
         }
@@ -152,6 +166,12 @@ pub fn add_close_tag_general(state: &mut State, indent: bool, is_empty: bool) {
         "".to_string()
     };
 
+    let key_formated = if state.to_snake_case {
+        key.to_case(convert_case::Case::Snake)
+    } else {
+        key.clone()
+    };
+
     if is_empty {
         let default_xml_tag = format!("{}/>", state.curr_xml);
         if let Some(obj_id) = state.get_obj_id_for_closing_tag(&key) {
@@ -161,9 +181,12 @@ pub fn add_close_tag_general(state: &mut State, indent: bool, is_empty: bool) {
         }
         state.curr_indent -= 1;
     } else {
-        let default_xml_tag = format!("{}{}</{}>", state.curr_xml, indentation_str, key);
+        let default_xml_tag = format!("{}{}</{}>", state.curr_xml, indentation_str, key_formated);
         if let Some(obj_id) = state.get_obj_id_for_closing_tag(&key) {
-            state.curr_xml = format!("{}{}</{}>{}", state.curr_xml, indentation_str, key, obj_id);
+            state.curr_xml = format!(
+                "{}{}</{}>{}",
+                state.curr_xml, indentation_str, key_formated, obj_id
+            );
         } else {
             state.curr_xml = default_xml_tag;
         }

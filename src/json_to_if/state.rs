@@ -30,6 +30,8 @@ pub struct State {
     pub curr_indent: i32,
     pub xml_attributes: Option<XmlAttributesBasicInfo>,
     pub xml_attributes_map: HashMap<String, HashMap<XmlAttributesMapKey, XmlAttributesType>>,
+    pub to_snake_case: bool,
+    pub root_name: String,
 }
 
 impl State {
@@ -41,6 +43,8 @@ impl State {
             curr_indent: 0,
             xml_attributes: None,
             xml_attributes_map: HashMap::new(),
+            to_snake_case: true,
+            root_name: String::new(),
         }
     }
 

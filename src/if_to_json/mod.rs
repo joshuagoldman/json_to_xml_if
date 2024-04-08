@@ -113,6 +113,7 @@ pub struct State {
     pub curr_row_num: i32,
     pub curr_indent: i32,
     pub str_json: Option<String>,
+    pub to_camel_case: bool,
 }
 
 impl State {
@@ -122,6 +123,7 @@ impl State {
             curr_row_num: 1,
             curr_indent: 0,
             str_json: None,
+            to_camel_case: true,
         }
     }
 
@@ -291,7 +293,6 @@ fn to_if_req_single(char_val: &char, state: &mut State) {
         NodeStage::OpenTag(open_tag_options) => match open_tag_options {
             OpenTagStage::Key => open_tag_key_stage_open(char_val, state, false),
             OpenTagStage::Attributes(open_tag_stage_attributes) => {
-                //print!("{:#?}", node_stage);
                 open_tag_stage_attributes_decision(char_val, state, open_tag_stage_attributes)
             }
             OpenTagStage::TagValueCData(curr_val) => {
@@ -316,16 +317,23 @@ fn to_if_req_single(char_val: &char, state: &mut State) {
     }
 }
 
-pub fn if_to_json(xml_str: &String) -> Result<String, String> {
+pub fn if_to_json(xml_str: &String, to_camel_case: bool) -> Result<String, String> {
     let mut state = State::new();
+    state.to_camel_case = to_camel_case;
     for (_, char_val) in xml_str.chars().enumerate() {
         to_if_req_single(&char_val, &mut state);
     }
-    //panic!("{:#?}", state);
-    //panic!("nope");
 
     if let Some(res_json) = state.str_json {
-        Result::Ok(res_json)
+        Result::Ok(
+            res_json
+                .chars()
+                .skip_while(|x| x != &':')
+                .skip(1)
+                .collect::<String>()
+                .trim()
+                .to_string(),
+        )
     } else {
         Result::Err("Not enough data to construct a json".to_string())
     }
