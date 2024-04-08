@@ -1,0 +1,4 @@
+ <friends>
+  <name 9c89481e-730a-4cc3-8d2d-1fec233283d1>Alice Williams</name>
+  <age e661a4c6-2f12-477f-9907-25147c8ccc6d>null</age>
+ </friends>thread 'tests::test_parse_to_soap_xml' panicked at src/json_to_if/mod.rs:311:5:

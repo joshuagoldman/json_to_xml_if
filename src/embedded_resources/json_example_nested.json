@@ -1,0 +1,30 @@
+   {
+     "name": "John Doe",
+     "age": 30,
+     "address": {
+       "street": "123 Main St",
+         "city": "New York",
+       "state": null
+     },
+     "tags": ["apple", "banana", "orange"],
+     "friends": [
+       {
+         "name": "Jane Smith",
+         "age": 28
+       },
+       {
+         "name": "Bob Johnson",
+         "age": 32
+       },
+       {
+         "name": "Alice Williams",
+         "age": null
+       },
+       null
+     ],
+     "preferences": {
+       "music": [null, "pop"],
+       "movies": ["action", "comedy"],
+       "colors": ["blue", "green"]
+     }
+   }
