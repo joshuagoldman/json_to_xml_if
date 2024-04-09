@@ -1,0 +1,16 @@
+/home/joshua/Documents/Repos/json_xml_parser/CSharpTestBench/bin/Debug/net8.0/CSharpTestBench
+/home/joshua/Documents/Repos/json_xml_parser/CSharpTestBench/bin/Debug/net8.0/CSharpTestBench.deps.json
+/home/joshua/Documents/Repos/json_xml_parser/CSharpTestBench/bin/Debug/net8.0/CSharpTestBench.runtimeconfig.json
+/home/joshua/Documents/Repos/json_xml_parser/CSharpTestBench/bin/Debug/net8.0/CSharpTestBench.dll
+/home/joshua/Documents/Repos/json_xml_parser/CSharpTestBench/bin/Debug/net8.0/CSharpTestBench.pdb
+/home/joshua/Documents/Repos/json_xml_parser/CSharpTestBench/obj/Debug/net8.0/CSharpTestBench.GeneratedMSBuildEditorConfig.editorconfig
+/home/joshua/Documents/Repos/json_xml_parser/CSharpTestBench/obj/Debug/net8.0/CSharpTestBench.AssemblyInfoInputs.cache
+/home/joshua/Documents/Repos/json_xml_parser/CSharpTestBench/obj/Debug/net8.0/CSharpTestBench.AssemblyInfo.cs
+/home/joshua/Documents/Repos/json_xml_parser/CSharpTestBench/obj/Debug/net8.0/CSharpTestBench.csproj.CoreCompileInputs.cache
+/home/joshua/Documents/Repos/json_xml_parser/CSharpTestBench/obj/Debug/net8.0/CSharpTestBench.sourcelink.json
+/home/joshua/Documents/Repos/json_xml_parser/CSharpTestBench/obj/Debug/net8.0/CSharpTestBench.dll
+/home/joshua/Documents/Repos/json_xml_parser/CSharpTestBench/obj/Debug/net8.0/refint/CSharpTestBench.dll
+/home/joshua/Documents/Repos/json_xml_parser/CSharpTestBench/obj/Debug/net8.0/CSharpTestBench.pdb
+/home/joshua/Documents/Repos/json_xml_parser/CSharpTestBench/obj/Debug/net8.0/CSharpTestBench.genruntimeconfig.cache
+/home/joshua/Documents/Repos/json_xml_parser/CSharpTestBench/obj/Debug/net8.0/ref/CSharpTestBench.dll
+/home/joshua/Documents/Repos/json_xml_parser/CSharpTestBench/bin/Debug/net8.0/libjson_xml_parser.so

@@ -1,4 +1,4 @@
-use std::ffi::{c_char, CString};
+use std::ffi::{c_char, CStr, CString};
 
 use regex::Regex;
 
@@ -9,10 +9,10 @@ pub mod xml_to_json;
 
 #[no_mangle]
 pub extern "C" fn json_to_xml(
-    json_str: *mut c_char,
+    json_str: *const c_char,
     to_snake_case: bool,
-    root_name: *mut c_char,
-) -> *mut c_char {
+    root_name: *const c_char,
+) -> *const c_char {
     IS_ALLOWED_KEY_REGEX_EXPR
         .set(Regex::new(r"^[aA-zZ]").unwrap())
         .unwrap();
@@ -21,7 +21,7 @@ pub extern "C" fn json_to_xml(
         .unwrap();
 
     let root_name_rust_str: String;
-    let rust_str: String;
+    let json_str_rust: String;
     unsafe {
         if json_str.is_null() {
             return CString::new("json string is not valid").unwrap().into_raw();
@@ -29,35 +29,28 @@ pub extern "C" fn json_to_xml(
         if root_name.is_null() {
             return CString::new("root name is not valid").unwrap().into_raw();
         }
-        let xml_c_str = CString::from_raw(root_name);
-        rust_str = xml_c_str.to_str().unwrap().to_string();
-        let root_name_c_str = CString::from_raw(root_name);
+        let json_c_str = CStr::from_ptr(json_str);
+        json_str_rust = json_c_str.to_str().unwrap().to_string();
+        let root_name_c_str = CStr::from_ptr(root_name);
         root_name_rust_str = root_name_c_str.to_str().unwrap().to_string();
     }
-    match json_to_xml::json_to_xml(&rust_str, to_snake_case, root_name_rust_str) {
+    match json_to_xml::json_to_xml(&json_str_rust, to_snake_case, root_name_rust_str) {
         Ok(ok_res) => CString::new(ok_res).unwrap().into_raw(),
         Err(err) => CString::new(err).unwrap().into_raw(),
     }
 }
 
 #[no_mangle]
-pub extern "C" fn xml_to_json(xml_str: *mut c_char, to_camel_case: bool) -> *mut c_char {
-    IS_ALLOWED_KEY_REGEX_EXPR
-        .set(Regex::new(r"^[aA-zZ]").unwrap())
-        .unwrap();
-    ATTRIBUTES_REGEX_EXPR
-        .set(Regex::new(r"_(A|a)(T|t)(T|t)(R|r)(I|i)(B|b)(U|u)(T|t)(E|e)(S|s)$").unwrap())
-        .unwrap();
-
-    let rust_str: String;
+pub extern "C" fn xml_to_json(xml_str: *const c_char, to_camel_case: bool) -> *const c_char {
+    let xml_str_rust: String;
     unsafe {
         if xml_str.is_null() {
             return CString::new("xml string is not valid").unwrap().into_raw();
         }
-        let xml_c_str = CString::from_raw(xml_str);
-        rust_str = xml_c_str.to_str().unwrap().to_string();
+        let xml_c_str = CStr::from_ptr(xml_str);
+        xml_str_rust = xml_c_str.to_str().unwrap().to_string();
     }
-    match xml_to_json::xml_to_json(&rust_str, to_camel_case) {
+    match xml_to_json::xml_to_json(&xml_str_rust, to_camel_case) {
         Ok(ok_res) => CString::new(ok_res).unwrap().into_raw(),
         Err(err) => CString::new(err).unwrap().into_raw(),
     }

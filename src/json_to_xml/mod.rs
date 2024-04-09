@@ -36,7 +36,6 @@ pub mod xml_attributes;
 pub mod xml_tag;
 
 fn unexpected_character_error(char_val: &char, state: &State) {
-    print!("{:#?}", state);
     panic!(
         "Unexpected character '{}' at row {}",
         char_val, state.curr_row_num
