@@ -14,3 +14,4 @@
 /home/joshua/Documents/Repos/json_xml_parser/CSharpTestBench/obj/Debug/net8.0/CSharpTestBench.genruntimeconfig.cache
 /home/joshua/Documents/Repos/json_xml_parser/CSharpTestBench/obj/Debug/net8.0/ref/CSharpTestBench.dll
 /home/joshua/Documents/Repos/json_xml_parser/CSharpTestBench/bin/Debug/net8.0/libjson_xml_parser.so
+/home/joshua/Documents/Repos/json_xml_parser/CSharpTestBench/bin/Debug/net8.0/json_xml_parser.dll

@@ -29,8 +29,15 @@ class Program
       var res_xml = JsonToXml(jsonContent, true, "parameters");
 
 
+#if Windows
+      File.WriteAllText("C:/Data/xml_run_fr_csharp.xml", res_xml);
+      File.WriteAllText("C:/Data/joshua/Public/Tests/json_run_fr_csharp.json", res_json);
+#else 
       File.WriteAllText("/home/joshua/Public/Tests/xml_run_fr_csharp.xml", res_xml);
       File.WriteAllText("/home/joshua/Public/Tests/json_run_fr_csharp.json", res_json);
+
+#endif
+
     }
     catch (System.Exception e)
     {
