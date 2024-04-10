@@ -104,8 +104,6 @@ pub fn build_object_json(node: &NodeStrResult, state: &mut State) -> String {
         xml_attributes_str = "null".to_string();
     }
 
-    let mut new_node = node.str_value.trim_start().trim_end().to_string();
-    new_node.remove(new_node.len() - 3);
     let mut xml_attributes_str_new = xml_attributes_str.trim_start().trim_end().to_string();
     xml_attributes_str_new.remove(xml_attributes_str_new.len() - 3);
 

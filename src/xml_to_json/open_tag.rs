@@ -1,8 +1,8 @@
 use regex::Regex;
 
 use super::{
-    json_build::add_key_val_node_result, unexpected_character_error, ClosedTagStage, Node,
-    NodeStage, OpenTagStage, State, ValueStage, XmlAttributeStage,
+    json_build::add_key_val_node_result, unexpected_character_error, ClosedTagStage, InitEndKeys,
+    Node, NodeStage, OpenTagStage, State, ValueStage, XmlAttributeStage,
 };
 
 pub fn key_update(state: &mut State, char_val: &char) -> String {
@@ -76,7 +76,16 @@ pub fn closed_key_is_empty_value(char_val: &char, state: &mut State) {
     match char_val {
         '/' => {
             add_key_val_node_result(state, &String::new());
-            state.update_node_stage(NodeStage::ClosedTag(ClosedTagStage::ForwardSlash));
+            let last_node = state.nodes[state.nodes.len() - 1].clone();
+            match last_node.node_key {
+                Some(some_open_tag_key) => state.update_node_stage(NodeStage::ClosedTag(
+                    ClosedTagStage::Key(InitEndKeys {
+                        open_tag_key: some_open_tag_key,
+                        closed_tag_key: String::new(),
+                    }),
+                )),
+                None => panic!("No open tag was found!"),
+            }
         }
         _ => {
             state.update_node_stage(NodeStage::OpenTag(OpenTagStage::TagValue(format!(
