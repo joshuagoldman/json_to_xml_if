@@ -81,7 +81,7 @@ mod tests {
             .set(Regex::new(r"_(A|a)(T|t)(T|t)(R|r)(I|i)(B|b)(U|u)(T|t)(E|e)(S|s)$").unwrap())
             .unwrap();
         let json = include_str!("./embedded_resources/json_example.json");
-        let result = json_to_xml(&json.to_string(), false, "parameters".to_string());
+        let result = json_to_xml(&json.to_string(), true, "PARAMS_LIST".to_string());
 
         match result {
             Ok(ok_res) => {

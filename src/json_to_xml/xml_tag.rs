@@ -153,7 +153,7 @@ pub fn add_close_tag_val_empty(state: &mut State) {
 
 pub fn add_close_tag_general(state: &mut State, indent: bool, is_empty: bool) {
     let key = if state.fields.len() == 1 {
-        "parameters".to_string()
+        state.root_name.to_string()
     } else {
         state.fields[state.fields.len() - 1]
             .key
