@@ -9,10 +9,6 @@ pub fn check_end_xml_attributes_array_handling(
     xml_attributes_array_info: XmlAttributeArrayinfo,
 ) {
     let xml_attibutes_vec_str = construct_xml_attributes_str_vec(&xml_attributes_array_info);
-    if xml_attibutes_vec_str.last().unwrap().contains("styre") {
-        println!("{:#?}", xml_attributes_array_info);
-        println!("{}", state.curr_xml);
-    }
 
     if xml_attibutes_vec_str.len() != 0
         && xml_attributes_array_info

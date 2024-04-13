@@ -4,6 +4,7 @@ use regex::Regex;
 
 use crate::json_to_xml::models::{ATTRIBUTES_REGEX_EXPR, IS_ALLOWED_KEY_REGEX_EXPR};
 
+pub mod hebrew_handler;
 pub mod json_to_xml;
 pub mod xml_to_json;
 

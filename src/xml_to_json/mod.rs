@@ -1,3 +1,5 @@
+use crate::hebrew_handler::hebrew_str_to_non_hebrew;
+
 use self::{
     cdata::open_tag_stage_cdata_open,
     close_tag::{
@@ -320,20 +322,23 @@ fn to_if_req_single(char_val: &char, state: &mut State) {
 pub fn xml_to_json(xml_str: &String, to_camel_case: bool) -> Result<String, String> {
     let mut state = State::new();
     state.to_camel_case = to_camel_case;
+    let mut xml_str_no_hebrew = xml_str.clone();
+    hebrew_str_to_non_hebrew(&mut xml_str_no_hebrew, true);
     for (_, char_val) in xml_str.chars().enumerate() {
         to_if_req_single(&char_val, &mut state);
     }
 
     if let Some(res_json) = state.str_json {
-        Result::Ok(
-            res_json
-                .chars()
-                .skip_while(|x| x != &':')
-                .skip(1)
-                .collect::<String>()
-                .trim()
-                .to_string(),
-        )
+        let mut ok_res = res_json
+            .chars()
+            .skip_while(|x| x != &':')
+            .skip(1)
+            .collect::<String>()
+            .trim()
+            .to_string();
+
+        hebrew_str_to_non_hebrew(&mut ok_res, false);
+        Result::Ok(ok_res)
     } else {
         Result::Err("Not enough data to construct a json".to_string())
     }

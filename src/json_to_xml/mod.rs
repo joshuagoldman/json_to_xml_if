@@ -1,3 +1,5 @@
+use crate::hebrew_handler::hebrew_str_to_non_hebrew;
+
 use self::{
     array_val::{
         array_val_json_null_case_closed, array_val_json_null_case_open,
@@ -239,9 +241,16 @@ pub fn json_to_xml(
     let mut state = State::new();
     state.to_snake_case = to_snake_case;
     state.root_name = root_name;
-    for (_, char_val) in json.chars().enumerate() {
+    let mut json_non_hebrew = json.clone();
+    hebrew_str_to_non_hebrew(&mut json_non_hebrew, true);
+    print!("{}", json_non_hebrew);
+    for (_, char_val) in json_non_hebrew.chars().enumerate() {
         to_if_req_single(&char_val, &mut state);
     }
 
-    Result::Ok(state.curr_xml.trim().to_string())
+    //panic!("aborted");
+
+    let mut xml_hebrew = state.curr_xml.trim().to_string().clone();
+    hebrew_str_to_non_hebrew(&mut xml_hebrew, false);
+    Result::Ok(xml_hebrew.to_string())
 }
