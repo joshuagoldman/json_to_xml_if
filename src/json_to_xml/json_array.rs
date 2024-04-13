@@ -77,7 +77,7 @@ pub fn json_array_open_case(char_val: &char, state: &mut State) {
                 ArrayValType::JsonNumber(char_val.to_string()),
             )));
         }
-        _ => match char_val.to_string().parse::<i32>() {
+        _ => match char_val.to_string().parse::<i16>() {
             Ok(_) => {
                 new_arr_value_handling(state);
 
@@ -135,7 +135,7 @@ pub fn json_array_item_separator_case(char_val: &char, state: &mut State) {
                 ArrayValType::JsonNumber(char_val.to_string()),
             )));
         }
-        _ => match char_val.to_string().parse::<i32>() {
+        _ => match char_val.to_string().parse::<i16>() {
             Ok(_) => {
                 new_arr_value_handling(state);
 

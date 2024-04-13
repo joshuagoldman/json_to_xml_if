@@ -149,7 +149,7 @@ pub fn add_key_val_node_result(state: &mut State, str_val: &String) {
 
     let new_str = if str_val.is_empty() {
         "null".to_string()
-    } else if let Ok(_) = str_val.parse::<i32>() {
+    } else if let Ok(_) = str_val.parse::<i16>() {
         format!("{}", str_val.clone())
     } else {
         format!("\"{}\"", str_val.clone())

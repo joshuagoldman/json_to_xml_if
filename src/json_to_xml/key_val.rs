@@ -1,3 +1,5 @@
+use std::i16;
+
 use regex::Regex;
 
 use crate::json_to_xml::{
@@ -79,7 +81,7 @@ pub fn key_val_separator_case(char_val: &char, state: &mut State) {
                 KeyValState::ValState(KeyValType::JsonNumber(char_val.to_string())),
             )));
         }
-        _ => match char_val.to_string().parse::<i32>() {
+        _ => match char_val.to_string().parse::<i16>() {
             Ok(_) => {
                 add_open_tag(state, true, XmlOpenTagOptions::ObjectSimpleVal);
                 state.update_token_type(TokenType::JsonObject(TokenStage::Content(
@@ -145,7 +147,7 @@ pub fn key_val_json_number_open_case(char_val: &char, state: &mut State, json_nu
             state.fields.pop();
             state.update_to_closed_state();
         }
-        _ => match new_num_as_str.parse::<i32>() {
+        _ => match new_num_as_str.parse::<i16>() {
             Ok(_) => {
                 state.update_token_type(TokenType::JsonObject(TokenStage::Content(
                     KeyValState::ValState(KeyValType::JsonNumber(new_num_as_str.to_owned())),
