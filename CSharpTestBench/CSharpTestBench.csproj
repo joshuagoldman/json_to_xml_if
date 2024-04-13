@@ -8,7 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="EmbeddedResources/json_example.json" />
-    <EmbeddedResource Include="EmbeddedResources/xml_example.json" />
+    <EmbeddedResource Include="EmbeddedResources/xml_example.xml" />
     <None Update="libjson_xml_parser.so" CopyToOutputDirectory="PreserveNewest" />
     <None Update="json_xml_parser.dll" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
