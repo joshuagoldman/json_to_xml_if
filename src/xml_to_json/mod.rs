@@ -324,7 +324,7 @@ pub fn xml_to_json(xml_str: &String, to_camel_case: bool) -> Result<String, Stri
     state.to_camel_case = to_camel_case;
     let mut xml_str_no_hebrew = xml_str.clone();
     hebrew_str_to_non_hebrew(&mut xml_str_no_hebrew, true);
-    for (_, char_val) in xml_str.chars().enumerate() {
+    for (_, char_val) in xml_str_no_hebrew.chars().enumerate() {
         to_if_req_single(&char_val, &mut state);
     }
 
