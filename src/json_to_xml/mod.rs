@@ -243,7 +243,6 @@ pub fn json_to_xml(
     state.root_name = root_name;
     let mut json_non_hebrew = json.clone();
     hebrew_str_to_non_hebrew(&mut json_non_hebrew, true);
-    print!("{}", json_non_hebrew);
     for (_, char_val) in json_non_hebrew.chars().enumerate() {
         to_if_req_single(&char_val, &mut state);
     }

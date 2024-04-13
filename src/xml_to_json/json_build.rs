@@ -209,6 +209,7 @@ pub fn json_construct(state: &mut State) {
 }
 
 pub fn construct_last(state: &mut State) {
-    let node = child_nodes_or_key_val_handling(state);
+    let mut node = child_nodes_or_key_val_handling(state);
+    node.xml_attributes_str = String::new();
     state.str_json = Some(build_object_json(&node, state).trim_start().to_string());
 }

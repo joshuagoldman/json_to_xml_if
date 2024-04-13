@@ -31,7 +31,6 @@ pub fn hebrew_str_to_non_hebrew(str_val: &mut String, to_non_hebrew: bool) {
         ("ddfe1abc-a747-4f30-9a6c-15a5340bf45a", "ץ"),
     ]);
 
-    print!("{:#?}", guid_to_hebrew_map);
     if to_non_hebrew {
         for (_, (key, key_val)) in guid_to_hebrew_map.iter().enumerate() {
             *str_val = str_val.replace(key_val, key);
