@@ -1,4 +1,5 @@
 use super::{
+    last_json_str_char_is_escape,
     models::{ArrayValType, JsonNull, JsonStr, TokenStage, TokenType},
     state::State,
     unexpected_character_error,
@@ -16,8 +17,8 @@ fn array_close_value_handling(state: &mut State, str_val: &String) {
 }
 
 pub fn array_val_json_str_open_case(char_val: &char, state: &mut State, json_str: &String) {
-    match char_val {
-        '"' => {
+    match (char_val, last_json_str_char_is_escape(json_str)) {
+        ('"', false) => {
             array_close_value_handling(state, json_str);
 
             state.update_token_type(TokenType::JsonArray(TokenStage::Content(

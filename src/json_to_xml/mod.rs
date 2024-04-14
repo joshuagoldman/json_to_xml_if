@@ -37,6 +37,19 @@ pub mod state;
 pub mod xml_attributes;
 pub mod xml_tag;
 
+pub fn last_json_str_char_is_escape(json_str: &String) -> bool {
+    match json_str.chars().last() {
+        Some(some_char) => {
+            if some_char == '\\' {
+                true
+            } else {
+                false
+            }
+        }
+        None => false,
+    }
+}
+
 fn unexpected_character_error(char_val: &char, state: &State) {
     panic!(
         "Unexpected character '{}' at row {}",

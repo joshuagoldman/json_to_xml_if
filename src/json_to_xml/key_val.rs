@@ -8,6 +8,7 @@ use crate::json_to_xml::{
 };
 
 use super::{
+    last_json_str_char_is_escape,
     models::{TokenStage, TokenStageKey, TokenType},
     unexpected_character_error,
     xml_tag::{add_close_tag, add_close_tag_val_empty, add_open_tag_val_empty, add_tag_val},
@@ -94,8 +95,8 @@ pub fn key_val_separator_case(char_val: &char, state: &mut State) {
 }
 
 pub fn key_val_json_str_open_case(char_val: &char, state: &mut State, json_str: &String) {
-    match char_val {
-        '"' => {
+    match (char_val, last_json_str_char_is_escape(json_str)) {
+        ('"', false) => {
             add_tag_val(state, json_str);
             add_close_tag(state, false);
             state.fields.pop();

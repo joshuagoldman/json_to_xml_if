@@ -45,7 +45,8 @@
  },
  "randomNode": [
   {
-   "childNode": null
+   "childNode": null,
+    "vad": "{  \"name\": \"John Doe\",  \"age\": 35,  \"email\": \"john.doe@example.com\",  \"hobbies\": [\"reading\", \"hiking\", \"photography\"],  \"address\": {    \"street\": \"123 Main St\",    \"city\": \"Anytown\",    \"state\": \"CA\",    \"zip\": \"12345\"  }}"
   },
   {
    "childNode": null,
@@ -53,6 +54,7 @@
     "node": [
       null,
       null,
+      "{  \"name\": \"John Doe\",  \"age\": 35,  \"email\": \"john.doe@example.com\",  \"hobbies\": [\"reading\", \"hiking\", \"photography\"],  \"address\": {    \"street\": \"123 Main St\",    \"city\": \"Anytown\",    \"state\": \"CA\",    \"zip\": \"12345\"  }}",
       "Additional value"
     ],
     "node_attributes": [
