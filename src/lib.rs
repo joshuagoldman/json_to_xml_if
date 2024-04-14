@@ -43,6 +43,12 @@ pub extern "C" fn json_to_xml(
 
 #[no_mangle]
 pub extern "C" fn xml_to_json(xml_str: *const c_char, to_camel_case: bool) -> *const c_char {
+    IS_ALLOWED_KEY_REGEX_EXPR
+        .set(Regex::new(r"^[aA-zZ]").unwrap())
+        .unwrap();
+    ATTRIBUTES_REGEX_EXPR
+        .set(Regex::new(r"_(A|a)(T|t)(T|t)(R|r)(I|i)(B|b)(U|u)(T|t)(E|e)(S|s)$").unwrap())
+        .unwrap();
     let xml_str_rust: String;
     unsafe {
         if xml_str.is_null() {
