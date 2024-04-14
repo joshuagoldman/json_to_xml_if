@@ -1,7 +1,4 @@
-use std::{
-    ffi::{c_char, CStr, CString},
-    str::from_utf8,
-};
+use std::ffi::{c_char, CStr, CString};
 
 use regex::Regex;
 
@@ -34,7 +31,7 @@ pub extern "C" fn json_to_xml(
             return CString::new("root name is not valid").unwrap().into_raw();
         }
         let json_c_str = CStr::from_ptr(json_str);
-        json_str_rust = from_utf8(json_c_str.to_bytes()).unwrap().to_string();
+        json_str_rust = json_c_str.to_str().unwrap().to_string();
         let root_name_c_str = CStr::from_ptr(root_name);
         root_name_rust_str = root_name_c_str.to_str().unwrap().to_string();
     }
@@ -52,7 +49,7 @@ pub extern "C" fn xml_to_json(xml_str: *const c_char, to_camel_case: bool) -> *c
             return CString::new("xml string is not valid").unwrap().into_raw();
         }
         let xml_c_str = CStr::from_ptr(xml_str);
-        xml_str_rust = from_utf8(xml_c_str.to_bytes()).unwrap().to_string();
+        xml_str_rust = xml_c_str.to_str().unwrap().to_string();
     }
     match xml_to_json::xml_to_json(&xml_str_rust, to_camel_case) {
         Ok(ok_res) => CString::new(ok_res).unwrap().into_raw(),
