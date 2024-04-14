@@ -20,7 +20,7 @@ fn tag_options_attr_decision(
     };
 
     let key_formated = if state.to_snake_case {
-        key.to_case(convert_case::Case::Snake)
+        key.to_case(convert_case::Case::Snake).to_uppercase()
     } else {
         key.clone()
     };
@@ -92,7 +92,7 @@ pub fn add_open_tag_general(
     };
 
     let key_formated = if state.to_snake_case {
-        key.to_case(convert_case::Case::Snake)
+        key.to_case(convert_case::Case::Snake).to_uppercase()
     } else {
         key.clone()
     };
@@ -167,7 +167,7 @@ pub fn add_close_tag_general(state: &mut State, indent: bool, is_empty: bool) {
     };
 
     let key_formated = if state.to_snake_case {
-        key.to_case(convert_case::Case::Snake)
+        key.to_case(convert_case::Case::Snake).to_uppercase()
     } else {
         key.clone()
     };
