@@ -20,10 +20,10 @@ pub extern "C" fn json_to_xml(
 ) -> *const c_char {
     IS_ALLOWED_KEY_REGEX_EXPR
         .set(Regex::new(r"^[aA-zZ]").unwrap())
-        .unwrap();
+        .unwrap_or(());
     ATTRIBUTES_REGEX_EXPR
         .set(Regex::new(r"_(A|a)(T|t)(T|t)(R|r)(I|i)(B|b)(U|u)(T|t)(E|e)(S|s)$").unwrap())
-        .unwrap();
+        .unwrap_or(());
 
     let root_name_rust_str: String;
     let json_str_rust: String;
@@ -49,10 +49,10 @@ pub extern "C" fn json_to_xml(
 pub extern "C" fn xml_to_json(xml_str: *const c_char, to_camel_case: bool) -> *const c_char {
     IS_ALLOWED_KEY_REGEX_EXPR
         .set(Regex::new(r"^[aA-zZ]").unwrap())
-        .unwrap();
+        .unwrap_or(());
     ATTRIBUTES_REGEX_EXPR
         .set(Regex::new(r"_(A|a)(T|t)(T|t)(R|r)(I|i)(B|b)(U|u)(T|t)(E|e)(S|s)$").unwrap())
-        .unwrap();
+        .unwrap_or(());
 
     let xml_str_rust: String;
     unsafe {
