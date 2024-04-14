@@ -96,9 +96,21 @@ pub fn closed_key_is_empty_value(char_val: &char, state: &mut State) {
     }
 }
 
+fn modify_special_characters(char_val: &char, node_val: &String) -> String {
+    if char_val == &'"' {
+        format!("{}\\\"", node_val)
+    } else if char_val == &'\n' {
+        format!("{}\\n", node_val)
+    } else if char_val == &'\r' {
+        format!("{}\\r", node_val)
+    } else {
+        format!("{}{}", node_val, char_val)
+    }
+}
+
 pub fn open_tag_value_stage(char_val: &char, state: &mut State, node_val: &String) {
     let regex = Regex::new(r"^<[aA-zZ]").unwrap();
-    let new_string_val = format!("{}{}", node_val, char_val);
+    let new_string_val = modify_special_characters(char_val, node_val);
     let is_match = regex.is_match(new_string_val.as_str());
 
     if new_string_val.starts_with("<!") && new_string_val.len() == 3 {
