@@ -1,8 +1,12 @@
-use std::ffi::{c_char, CStr, CString};
+use std::{
+    ffi::{c_char, CStr, CString},
+    sync::OnceLock,
+};
 
 use regex::Regex;
 
-use crate::json_to_xml::models::{ATTRIBUTES_REGEX_EXPR, IS_ALLOWED_KEY_REGEX_EXPR};
+pub static IS_ALLOWED_KEY_REGEX_EXPR: OnceLock<Regex> = OnceLock::new();
+pub static ATTRIBUTES_REGEX_EXPR: OnceLock<Regex> = OnceLock::new();
 
 pub mod hebrew_handler;
 pub mod json_to_xml;
@@ -49,6 +53,7 @@ pub extern "C" fn xml_to_json(xml_str: *const c_char, to_camel_case: bool) -> *c
     ATTRIBUTES_REGEX_EXPR
         .set(Regex::new(r"_(A|a)(T|t)(T|t)(R|r)(I|i)(B|b)(U|u)(T|t)(E|e)(S|s)$").unwrap())
         .unwrap();
+
     let xml_str_rust: String;
     unsafe {
         if xml_str.is_null() {
@@ -71,12 +76,9 @@ mod tests {
     use regex::Regex;
 
     use crate::{
-        json_to_xml::{
-            json_to_xml,
-            models::{ATTRIBUTES_REGEX_EXPR, IS_ALLOWED_KEY_REGEX_EXPR},
-            xml_attributes::xml_attributes_end::remove_str_chunk_by_key,
-        },
+        json_to_xml::{json_to_xml, xml_attributes::xml_attributes_end::remove_str_chunk_by_key},
         xml_to_json::{xml_to_json, Node, NodeStrResult, State, XmlAttribute},
+        ATTRIBUTES_REGEX_EXPR, IS_ALLOWED_KEY_REGEX_EXPR,
     };
 
     #[test]

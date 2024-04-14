@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
+use crate::ATTRIBUTES_REGEX_EXPR;
+
 use super::{
-    models::{
-        Field, FieldPositionNumForMap, NestingState, TokenStage, TokenType, ATTRIBUTES_REGEX_EXPR,
-    },
+    models::{Field, FieldPositionNumForMap, NestingState, TokenStage, TokenType},
     xml_attributes::{
         self,
         models::{

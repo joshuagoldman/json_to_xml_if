@@ -1,4 +1,4 @@
-use crate::json_to_xml::{models::IS_ALLOWED_KEY_REGEX_EXPR, State};
+use crate::{json_to_xml::State, IS_ALLOWED_KEY_REGEX_EXPR};
 
 use super::models::{XmlAttributeKeyValueStages, XmlAttributesObjectStages, XmlAttributesStages};
 

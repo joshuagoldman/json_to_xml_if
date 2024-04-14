@@ -1,7 +1,10 @@
-use crate::json_to_xml::{
-    models::{FieldPositionNumForMap, NestingState, XmlOpenTagOptions, ATTRIBUTES_REGEX_EXPR},
-    state::State,
-    xml_tag::check_if_nested_in_array,
+use crate::{
+    json_to_xml::{
+        models::{FieldPositionNumForMap, NestingState, XmlOpenTagOptions},
+        state::State,
+        xml_tag::check_if_nested_in_array,
+    },
+    ATTRIBUTES_REGEX_EXPR,
 };
 
 use super::{
