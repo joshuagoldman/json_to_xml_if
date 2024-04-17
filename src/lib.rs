@@ -10,6 +10,7 @@ pub static ATTRIBUTES_REGEX_EXPR: OnceLock<Regex> = OnceLock::new();
 
 pub mod hebrew_handler;
 pub mod json_to_xml;
+pub mod stored_procedure_to_json;
 pub mod xml_to_json;
 
 #[no_mangle]
