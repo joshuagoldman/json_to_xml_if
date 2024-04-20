@@ -1,4 +1,6 @@
-use self::stored_procedure_variable::no_stored_procedure_stage;
+use self::stored_procedure_variable::{
+    no_stored_procedure_stage, stored_procedure_key_word_stage, stored_procedure_name_stage,
+};
 
 mod stored_procedure_variable;
 
@@ -102,15 +104,18 @@ fn should_not_ignore_white_space(index: usize, state: &mut State) -> bool {
     true
 }
 
-fn to_json(index: usize, state: &mut State) {
-    if should_not_ignore_white_space(index, state) {
+fn to_json(index: &mut usize, state: &mut State) {
+    if should_not_ignore_white_space(index.clone(), state) {
+        *index = index.clone() + 1;
         return;
     }
 
-    match state.curr_stage {
-        ProcDecalarationStage::NoStoredProcedure => no_stored_procedure_stage(state, index),
-        ProcDecalarationStage::ProcedureKeyWord => todo!(),
-        ProcDecalarationStage::ProcedureName(_) => todo!(),
+    match state.curr_stage.clone() {
+        ProcDecalarationStage::NoStoredProcedure => no_stored_procedure_stage(state, &mut *index),
+        ProcDecalarationStage::ProcedureKeyWord => stored_procedure_key_word_stage(state, index),
+        ProcDecalarationStage::ProcedureName(curr_proc_name) => {
+            stored_procedure_name_stage(state, index, &curr_proc_name)
+        }
         ProcDecalarationStage::OpenBracket => todo!(),
         ProcDecalarationStage::Variable(_) => todo!(),
         ProcDecalarationStage::VariableSeparator => todo!(),
@@ -121,8 +126,9 @@ fn to_json(index: usize, state: &mut State) {
 pub fn stored_procedure_to_json(cntnt: &String) -> Result<String, String> {
     let mut state = State::new();
     state.content = cntnt.chars().collect();
-    for (index, _) in cntnt.chars().enumerate() {
-        to_json(index, &mut state);
+    let mut curr_index = 0;
+    while curr_index < cntnt.len() {
+        to_json(&mut curr_index, &mut state);
     }
 
     Result::Ok(String::new())
