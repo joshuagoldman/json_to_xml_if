@@ -3,7 +3,7 @@ use self::{
     stored_proc_variable::{
         db_type_separator_stage, variable_separator_direction, variable_separator_name,
         variable_stage_param_direction, variable_stage_param_ref_cursor,
-        variable_stage_param_type_varchar, variable_stage_variable_name,
+        variable_stage_param_type_in, variable_stage_variable_name,
     },
     stored_procedure_variable::{
         no_stored_procedure_stage, open_bracket_stage, stored_procedure_key_word_stage,
@@ -163,15 +163,21 @@ impl State {
     }
 }
 
-fn is_white_space(index: usize, state: &State) -> bool {
+fn is_white_space(index: &mut usize, state: &State) -> bool {
     vec![' ', '\n', '\t', '\r']
         .iter()
-        .any(|x| x == &state.content[index])
+        .any(|x| x == &state.content[index.clone()])
 }
 
-fn should_not_ignore_white_space(index: usize, state: &mut State) -> bool {
+fn should_not_ignore_white_space(index: &mut usize, state: &mut State) -> bool {
     if !is_white_space(index, state) {
         return false;
+    }
+
+    if let ProcDecalarationStage::Variable(ProcVariableStages::VariableName(curr_proc_name)) =
+        state.curr_stage.clone()
+    {
+        variable_stage_variable_name(state, index, &curr_proc_name)
     }
 
     true
@@ -180,7 +186,7 @@ fn should_not_ignore_white_space(index: usize, state: &mut State) -> bool {
 fn param_type_decision(index: &mut usize, state: &mut State, param_type_info: ParamTypeInfo) {
     match param_type_info.search_type {
         ParamSearchType::Word => {
-            variable_stage_param_type_varchar(state, index, &param_type_info.str_val)
+            variable_stage_param_type_in(state, index, &param_type_info.str_val)
         }
         ParamSearchType::EndsWith => {
             variable_stage_param_ref_cursor(state, index, &param_type_info.str_val)
@@ -215,7 +221,8 @@ fn variable_separation_stages_decision(
 }
 
 fn to_json(index: &mut usize, state: &mut State) {
-    if should_not_ignore_white_space(index.clone(), state) {
+    let entered_index = index.clone();
+    if should_not_ignore_white_space(index, state) {
         *index = index.clone() + 1;
         return;
     }
@@ -233,6 +240,10 @@ fn to_json(index: &mut usize, state: &mut State) {
         ProcDecalarationStage::VariableSeparator(var_sep_stages) => {
             variable_separation_stages_decision(index, state, var_sep_stages)
         }
+    }
+
+    if &entered_index == index {
+        *index = index.clone() + 1;
     }
 }
 

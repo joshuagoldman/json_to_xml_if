@@ -5,7 +5,7 @@ use super::{is_white_space, ProcDecalarationStage, State};
 pub fn variable_stage_variable_name(state: &mut State, index: &mut usize, curr_proc_name: &String) {
     let char_val = state.content[index.clone()];
     let new_str_val = format!("{}{}", curr_proc_name, char_val);
-    match is_white_space(index.clone(), state) {
+    match is_white_space(index, state) {
         true => {
             state.update_param_name(&curr_proc_name);
             state.update_stage(&ProcDecalarationStage::VariableSeparator(
@@ -77,21 +77,24 @@ pub fn variable_separator_direction(state: &mut State, index: &mut usize) {
     }
 }
 
-pub fn variable_stage_param_type_varchar(
-    state: &mut State,
-    index: &mut usize,
-    param_type_val: &String,
-) {
+pub fn variable_stage_param_type_in(state: &mut State, index: &mut usize, param_type_val: &String) {
+    let allowed_types = vec!["VARCHAR2", "VARCHAR", "NUMBER", "BOOL"];
     let char_val = state.content[index.clone()];
     let new_param_type_val = format!("{}{}", param_type_val, char_val);
     if char_val == ')' || char_val == ',' {
         state.update_stage(&ProcDecalarationStage::NoStoredProcedure);
-    } else if new_param_type_val.to_uppercase() == "VARCHAR2" {
+    } else if allowed_types
+        .iter()
+        .any(|at| &new_param_type_val.to_uppercase() == at)
+    {
         state.update_param_type(&super::OracleDbType::Varchar2);
         state.update_stage(&ProcDecalarationStage::VariableSeparator(
             super::VariableSeparationStage::DbTypeSeparator,
         ));
-    } else if "VARCHAR2".contains(&new_param_type_val) {
+    } else if allowed_types
+        .iter()
+        .any(|at| at.contains(&new_param_type_val))
+    {
         super::ProcVariableStages::VariableType(super::ParamTypeInfo {
             search_type: super::ParamSearchType::Word,
             str_val: new_param_type_val,

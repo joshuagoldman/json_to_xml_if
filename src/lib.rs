@@ -78,6 +78,7 @@ mod tests {
 
     use crate::{
         json_to_xml::{json_to_xml, xml_attributes::xml_attributes_end::remove_str_chunk_by_key},
+        stored_procedure_to_json::stored_procedure_to_json,
         xml_to_json::{xml_to_json, Node, NodeStrResult, State, XmlAttribute},
         ATTRIBUTES_REGEX_EXPR, IS_ALLOWED_KEY_REGEX_EXPR,
     };
@@ -194,5 +195,26 @@ mod tests {
             .unwrap();
 
         assert_eq!(test_str.trim(), test_str_expected.trim())
+    }
+
+    #[test]
+    fn test_pl_sql_package_to_json_data() {
+        let test_str = include_str!("./embedded_resources/exmple_package.sql")
+            .trim()
+            .to_string();
+
+        match stored_procedure_to_json(&test_str) {
+            Ok(ok_res) => {
+                let mut file =
+                    File::create("/home/joshua/Public/Tests/pl_plsql_to_json_res.json").unwrap();
+                file.write_all(ok_res.as_bytes()).unwrap();
+
+                assert!(true)
+            }
+            Err(err_res) => {
+                print!("{:#?}", err_res);
+                assert!(false)
+            }
+        }
     }
 }
