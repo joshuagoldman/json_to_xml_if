@@ -36,9 +36,12 @@ pub fn stored_procedure_name_stage(state: &mut State, index: &mut usize, curr_pr
                 .get()
                 .unwrap()
                 .is_match(&new_str_val);
-            match is_allowed_proc_name {
-                true => state.update_stage(&ProcDecalarationStage::ProcedureName(new_str_val)),
-                false => state.update_stage(&ProcDecalarationStage::NoStoredProcedure),
+            if curr_proc_name.len() > 0 {
+                state.update_stage(&ProcDecalarationStage::ProcedureName(new_str_val));
+            } else if is_allowed_proc_name {
+                state.update_stage(&ProcDecalarationStage::ProcedureName(new_str_val));
+            } else {
+                state.update_stage(&ProcDecalarationStage::NoStoredProcedure);
             }
         }
     }

@@ -2,8 +2,9 @@ use self::{
     json_data_construction::construct_json_data,
     stored_proc_variable::{
         db_type_separator_stage, variable_separator_direction, variable_separator_name,
-        variable_stage_param_direction, variable_stage_param_ref_cursor,
-        variable_stage_param_type_in, variable_stage_variable_name,
+        variable_separator_new_var, variable_stage_param_direction,
+        variable_stage_param_ref_cursor, variable_stage_param_type_in,
+        variable_stage_variable_name,
     },
     stored_procedure_variable::{
         no_stored_procedure_stage, open_bracket_stage, stored_procedure_key_word_stage,
@@ -94,6 +95,7 @@ pub enum VariableSeparationStage {
     NameSeparator,
     InOutSeparator,
     DbTypeSeparator,
+    NewVariable,
 }
 
 #[derive(Debug, Clone)]
@@ -217,11 +219,11 @@ fn variable_separation_stages_decision(
         VariableSeparationStage::NameSeparator => variable_separator_name(state, index),
         VariableSeparationStage::InOutSeparator => variable_separator_direction(state, index),
         VariableSeparationStage::DbTypeSeparator => db_type_separator_stage(state, index),
+        VariableSeparationStage::NewVariable => variable_separator_new_var(state, index),
     }
 }
 
 fn to_json(index: &mut usize, state: &mut State) {
-    let entered_index = index.clone();
     if should_not_ignore_white_space(index, state) {
         *index = index.clone() + 1;
         return;
@@ -242,9 +244,7 @@ fn to_json(index: &mut usize, state: &mut State) {
         }
     }
 
-    if &entered_index == index {
-        *index = index.clone() + 1;
-    }
+    *index = index.clone() + 1;
 }
 
 pub fn stored_procedure_to_json(cntnt: &String) -> Result<String, String> {
