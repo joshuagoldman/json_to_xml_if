@@ -25,18 +25,27 @@ fn construct_json_meta_data_param_decision(stored_proc_param: &StoredProcedurePa
     indentation_str)
 }
 
-fn construct_json_meta_data(stored_proc: &StoredProcedure) -> String {
+fn construct_json_meta_data(stored_proc: &StoredProcedure, package_name: &String) -> String {
     let params = stored_proc
         .params
         .iter()
         .map(|p| construct_json_meta_data_param_decision(p))
         .join(",\n");
 
+    let procedure_name_full: String;
+
+    if !package_name.is_empty() {
+        procedure_name_full = format!("{}.{}", package_name, stored_proc.info.procedure_name)
+    }
+    else {
+        procedure_name_full = stored_proc.info.procedure_name.clone();
+    }
+
     let indentation_str = "   ";
     let info_obj = format!("{}\"info\": {{\n{} \"procedureName\": \"{}\"\n{}}}",
                            indentation_str, 
                            indentation_str,
-                           stored_proc.info.procedure_name,
+                            procedure_name_full,
                            indentation_str);
     format!("{},\n{}\"params\": [\n{}\n{}]", info_obj,indentation_str, params, indentation_str)
 }
@@ -71,14 +80,14 @@ fn construct_json_for_class(stored_proc: &StoredProcedure) -> String {
     in_params
 }
 
-pub fn construct_json_data(stored_procedures: Vec<StoredProcedure>) -> String {
+pub fn construct_json_data(stored_procedures: Vec<StoredProcedure>, package_name: &String) -> String {
     //println!("{:#?}", stored_procedures);
     
     let indentation_str = " ";
     let mut array_cntnt = stored_procedures
         .iter()
         .map(|sp| {
-            let meta_data = construct_json_meta_data(sp);
+            let meta_data = construct_json_meta_data(sp, package_name);
             let json_class_data = construct_json_for_class(sp);
 
             format!(

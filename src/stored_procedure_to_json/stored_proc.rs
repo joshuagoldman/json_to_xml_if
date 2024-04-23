@@ -5,18 +5,31 @@ use crate::IS_ALLOWED_KEY_REGEX_EXPR;
 use super::{ProcDecalarationStage, State};
 
 pub fn no_stored_procedure_stage(state: &mut State, index: &mut usize) {
-    let key_word = "PROCEDURE ";
-    let index_new = index.clone() + key_word.len();
-    let range = index.clone()..index_new;
-    if state.content.len() - 1 >= index_new
-        && state.content[range]
+    let key_word_package = "PACKAGE ";
+    let index_new_package = index.clone() + key_word_package.len();
+    let range_package = index.clone()..index_new_package;
+
+    let key_word_procedure = "PROCEDURE ";
+    let index_new_procedure = index.clone() + key_word_procedure.len();
+    let range_procedure = index.clone()..index_new_procedure;
+    if state.content.len() - 1 >= index_new_procedure
+        && state.content[range_procedure]
             .iter()
             .collect::<String>()
             .to_uppercase()
-            == key_word
+            == key_word_procedure
     {
-        *index = index_new - 1;
+        *index = index_new_procedure - 1;
         state.update_stage(&ProcDecalarationStage::ProcedureKeyWord);
+    } else if state.content.len() - 1 >= index_new_package
+        && state.content[range_package]
+            .iter()
+            .collect::<String>()
+            .to_uppercase()
+            == key_word_package
+    {
+        *index = index_new_package - 1;
+        state.update_stage(&ProcDecalarationStage::PackageName(String::new()));
     }
 }
 

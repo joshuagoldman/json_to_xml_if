@@ -1,6 +1,7 @@
 use self::{
     comments::{comment_type_one_liner, comment_type_section, is_comment},
     json_data_construction::construct_json_data,
+    package_name::package_name_stage,
     stored_proc::{
         no_stored_procedure_stage, open_bracket_stage, stored_procedure_key_word_stage,
         stored_procedure_name_stage,
@@ -15,6 +16,7 @@ use self::{
 
 mod comments;
 mod json_data_construction;
+mod package_name;
 mod stored_proc;
 mod stored_proc_variable;
 
@@ -123,6 +125,7 @@ pub enum ProcDecalarationStage {
     Variable(ProcVariableStages),
     VariableSeparator(VariableSeparationStage),
     CommentSection(CommentInfo),
+    PackageName(String),
 }
 
 #[derive(Debug)]
@@ -132,6 +135,7 @@ pub struct State {
     pub stored_procedures: Vec<StoredProcedure>,
     pub curr_stage: ProcDecalarationStage,
     pub content: Vec<char>,
+    pub package_name: String,
 }
 
 impl State {
@@ -142,6 +146,7 @@ impl State {
             stored_procedures: Vec::new(),
             content: Vec::new(),
             curr_stage: ProcDecalarationStage::NoStoredProcedure,
+            package_name: String::new(),
         }
     }
 
@@ -194,6 +199,12 @@ impl State {
         self.update_stage(&ProcDecalarationStage::NoStoredProcedure);
         self.stored_procedures.pop();
     }
+
+    fn update_package_name(&mut self, package_name: &String) {
+        if self.package_name.is_empty() {
+            self.package_name = package_name.clone();
+        }
+    }
 }
 
 fn is_white_space(index: &mut usize, state: &State) -> bool {
@@ -213,6 +224,8 @@ fn should_not_ignore_white_space(index: &mut usize, state: &mut State) -> bool {
         variable_stage_variable_name(state, index, &curr_proc_name)
     } else if let ProcDecalarationStage::CommentSection(comment_info) = state.curr_stage.clone() {
         comment_decision(index, state, comment_info)
+    } else if let ProcDecalarationStage::PackageName(package_name) = state.curr_stage.clone() {
+        package_name_stage(state, index, &package_name)
     }
 
     true
@@ -294,6 +307,9 @@ fn to_json(index: &mut usize, state: &mut State) {
         ProcDecalarationStage::CommentSection(comment_info) => {
             comment_decision(index, state, comment_info)
         }
+        ProcDecalarationStage::PackageName(curr_str_val) => {
+            package_name_stage(state, index, &curr_str_val)
+        }
     }
 
     *index = index.to_owned() + 1;
@@ -309,6 +325,6 @@ pub fn stored_procedure_to_json(cntnt: &String) -> Result<String, String> {
     }
 
     //panic!("panic");
-    let res = construct_json_data(state.stored_procedures);
+    let res = construct_json_data(state.stored_procedures, &state.package_name);
     Result::Ok(res)
 }

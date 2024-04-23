@@ -112,10 +112,10 @@ mod tests {
     fn test_parse_to_soap_xml() {
         IS_ALLOWED_KEY_REGEX_EXPR
             .set(Regex::new(r"^[aA-zZ]").unwrap())
-            .unwrap();
+            .unwrap_or(());
         ATTRIBUTES_REGEX_EXPR
             .set(Regex::new(r"_(A|a)(T|t)(T|t)(R|r)(I|i)(B|b)(U|u)(T|t)(E|e)(S|s)$").unwrap())
-            .unwrap();
+            .unwrap_or(());
         let json = include_str!("./embedded_resources/json_example.json");
         let result = json_to_xml(&json.to_string(), true, "PARAMS_LIST".to_string());
 
