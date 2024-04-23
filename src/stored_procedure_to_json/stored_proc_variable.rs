@@ -1,6 +1,6 @@
 use crate::IS_ALLOWED_KEY_REGEX_EXPR;
 
-use super::{is_white_space, ProcDecalarationStage, State};
+use super::{is_white_space, ProcDecalarationStage, ProcVariableStages, State};
 
 pub fn variable_stage_variable_name(
     state: &mut State,
@@ -149,11 +149,14 @@ pub fn variable_stage_param_ref_cursor(
 pub fn db_type_separator_stage(state: &mut State, index: &mut usize) {
     let char_val = state.content[index.clone()];
 
-    match ',' == char_val {
-        true => state.update_stage(&ProcDecalarationStage::VariableSeparator(
+    match char_val {
+        ',' => state.update_stage(&ProcDecalarationStage::VariableSeparator(
             super::VariableSeparationStage::NewVariable,
         )),
-        false => state.update_stage(&ProcDecalarationStage::NoStoredProcedure),
+        ')' => state.update_stage(&ProcDecalarationStage::NoStoredProcedure),
+        _ => state.update_stage(&ProcDecalarationStage::Variable(
+            super::ProcVariableStages::DefaultKeyWord,
+        )),
     }
 }
 
@@ -168,5 +171,53 @@ pub fn variable_separator_new_var(state: &mut State, index: &mut usize) {
             super::ProcVariableStages::VariableName(char_val.to_string()),
         )),
         _ => state.abort_param(),
+    }
+}
+
+pub fn default_keywrd_stage(state: &mut State, index: &mut usize) {
+    let key_word = "DEFAULT ";
+    let index_new = index.clone() + key_word.len() - 1;
+    let range = index.clone() - 1..index_new;
+
+    if state.content.len() - 1 >= index_new
+        && state.content[range]
+            .iter()
+            .collect::<String>()
+            .to_uppercase()
+            == key_word
+    {
+        *index = index_new - 1;
+        state.update_stage(&ProcDecalarationStage::Variable(
+            ProcVariableStages::DefaultValueKeyWord(String::new()),
+        ));
+    } else {
+        state.abort_param();
+    }
+}
+
+pub fn default_keyword_value_stage(state: &mut State, index: &mut usize, curr_str_val: &String) {
+    let char_val = state.content[index.clone()];
+    let new_str_val = format!("{}{}", curr_str_val, char_val);
+    let is_allowed_val = IS_ALLOWED_KEY_REGEX_EXPR
+        .get()
+        .unwrap()
+        .is_match(&char_val.to_string());
+
+    if curr_str_val.len() == 0 && is_allowed_val {
+        state.update_stage(&ProcDecalarationStage::Variable(
+            ProcVariableStages::DefaultValueKeyWord(new_str_val),
+        ));
+    } else if curr_str_val.len() == 0 || new_str_val.len() > 25 {
+        state.abort_param()
+    } else if ',' == char_val {
+        state.update_stage(&ProcDecalarationStage::VariableSeparator(
+            super::VariableSeparationStage::NewVariable,
+        ))
+    } else if char_val == ')' {
+        state.update_stage(&ProcDecalarationStage::NoStoredProcedure)
+    } else {
+        state.update_stage(&ProcDecalarationStage::Variable(
+            ProcVariableStages::DefaultValueKeyWord(new_str_val),
+        ));
     }
 }

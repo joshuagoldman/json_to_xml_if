@@ -7,7 +7,7 @@ pub fn is_comment(state: &mut State, index: &mut usize) -> bool {
 
     let new_index = index.clone() + 1;
 
-    if state.content.len() - 1 > new_index
+    if state.content.len() - 1 >= new_index
         && state.content[index.clone()..new_index + 1]
             .iter()
             .collect::<String>()
@@ -19,7 +19,7 @@ pub fn is_comment(state: &mut State, index: &mut usize) -> bool {
         }));
         *index = new_index;
         return true;
-    } else if state.content.len() - 1 > new_index
+    } else if state.content.len() - 1 >= new_index
         && state.content[index.clone()..new_index + 1]
             .iter()
             .collect::<String>()
@@ -56,7 +56,7 @@ pub fn comment_type_section(
 ) {
     let new_index = index.clone() + 1;
 
-    if state.content.len() > new_index
+    if state.content.len() - 1 >= new_index
         && state.content[index.clone()..new_index + 1]
             .iter()
             .collect::<String>()

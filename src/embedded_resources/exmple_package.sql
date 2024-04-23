@@ -1,10 +1,11 @@
 CREATE OR REPLACE PACKAGE my_package
 IS
   PROCEDURE proc1 (
-    p_in_param1  IN  VARCHAR2, --- ssssacc
+    p_in_param1  IN  VARCHAR2 default nulls, --- ssssacc
    -- p_in_param1  IN  VARCHAR2, --- ssssacc
     p_in_param2  IN  NUMBER,
-    p_out_cursor OUT SYS_REFCURSOR
+    p_out_cursor OUT SYS_REFCURSOR,
+    p_in_param3  IN  NUMBER
   );
 
   PROCEDURE proc2 (

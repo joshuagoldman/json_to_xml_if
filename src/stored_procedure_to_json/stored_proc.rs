@@ -9,7 +9,11 @@ pub fn no_stored_procedure_stage(state: &mut State, index: &mut usize) {
     let index_new = index.clone() + key_word.len();
     let range = index.clone()..index_new;
     if state.content.len() - 1 >= index_new
-        && state.content[range].iter().collect::<String>() == key_word
+        && state.content[range]
+            .iter()
+            .collect::<String>()
+            .to_uppercase()
+            == key_word
     {
         *index = index_new - 1;
         state.update_stage(&ProcDecalarationStage::ProcedureKeyWord);

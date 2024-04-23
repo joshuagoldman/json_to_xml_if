@@ -1,22 +1,22 @@
 use self::{
     comments::{comment_type_one_liner, comment_type_section, is_comment},
     json_data_construction::construct_json_data,
-    stored_proc_variable::{
-        db_type_separator_stage, variable_separator_direction, variable_separator_name,
-        variable_separator_new_var, variable_stage_param_direction,
-        variable_stage_param_ref_cursor, variable_stage_param_type_in,
-        variable_stage_variable_name,
-    },
-    stored_procedure_variable::{
+    stored_proc::{
         no_stored_procedure_stage, open_bracket_stage, stored_procedure_key_word_stage,
         stored_procedure_name_stage,
+    },
+    stored_proc_variable::{
+        db_type_separator_stage, default_keyword_value_stage, default_keywrd_stage,
+        variable_separator_direction, variable_separator_name, variable_separator_new_var,
+        variable_stage_param_direction, variable_stage_param_ref_cursor,
+        variable_stage_param_type_in, variable_stage_variable_name,
     },
 };
 
 mod comments;
 mod json_data_construction;
+mod stored_proc;
 mod stored_proc_variable;
-mod stored_procedure_variable;
 
 #[derive(Clone, Debug)]
 pub struct StoredProcedureInfo {
@@ -90,6 +90,8 @@ pub enum ProcVariableStages {
     VariableName(String),
     VariableDirection(String),
     VariableType(ParamTypeInfo),
+    DefaultKeyWord,
+    DefaultValueKeyWord(String),
 }
 
 #[derive(Debug, Clone)]
@@ -237,6 +239,10 @@ fn variable_stages(index: &mut usize, state: &mut State, variable_stage: &ProcVa
         }
         ProcVariableStages::VariableType(param_type_info) => {
             param_type_decision(index, state, param_type_info.clone())
+        }
+        ProcVariableStages::DefaultKeyWord => default_keywrd_stage(state, index),
+        ProcVariableStages::DefaultValueKeyWord(curr_str_val) => {
+            default_keyword_value_stage(state, index, &curr_str_val)
         }
     }
 }
