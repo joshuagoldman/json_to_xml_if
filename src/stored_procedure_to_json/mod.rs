@@ -133,17 +133,24 @@ impl State {
     }
 
     pub fn add_procedure_name(&mut self, str_val: &String) {
-        if self.stored_procedures.len() == 0 {
-            let mut stored_proc = StoredProcedure::new();
-            stored_proc.info.procedure_name = str_val.clone();
-            self.stored_procedures.push(stored_proc);
-        }
+        let mut stored_proc = StoredProcedure::new();
+        stored_proc.info.procedure_name = str_val.clone();
+        self.stored_procedures.push(stored_proc);
     }
 
     pub fn update_param_name(&mut self, str_val: &String) {
         let last_proc_index = self.stored_procedures.len() - 1;
 
         let mut new_param = StoredProcedureParameter::new();
+        let params_len = self.stored_procedures[last_proc_index.clone()].params.len();
+        let position_new_param: usize;
+        if params_len > 0 {
+            position_new_param = params_len;
+        } else {
+            position_new_param = 0;
+        }
+
+        new_param.position = position_new_param;
         new_param.param_name = str_val.clone();
         self.stored_procedures[last_proc_index]
             .params
@@ -152,16 +159,23 @@ impl State {
 
     pub fn update_param_direction(&mut self, param_dircn: &ParameterDirection) {
         let last_proc_index = self.stored_procedures.len() - 1;
+        let last_param_index = self.stored_procedures[last_proc_index].params.len() - 1;
 
-        self.stored_procedures[last_proc_index].params[last_proc_index].param_direction =
+        self.stored_procedures[last_proc_index].params[last_param_index].param_direction =
             param_dircn.clone();
     }
 
     pub fn update_param_type(&mut self, param_type: &OracleDbType) {
         let last_proc_index = self.stored_procedures.len() - 1;
+        let last_param_index = self.stored_procedures[last_proc_index].params.len() - 1;
 
-        self.stored_procedures[last_proc_index].params[last_proc_index].param_type =
+        self.stored_procedures[last_proc_index].params[last_param_index].param_type =
             param_type.clone();
+    }
+
+    fn abort_param(&mut self) {
+        self.update_stage(&ProcDecalarationStage::NoStoredProcedure);
+        self.stored_procedures.pop();
     }
 }
 
@@ -244,17 +258,19 @@ fn to_json(index: &mut usize, state: &mut State) {
         }
     }
 
-    *index = index.clone() + 1;
+    *index = index.to_owned() + 1;
 }
 
 pub fn stored_procedure_to_json(cntnt: &String) -> Result<String, String> {
     let mut state = State::new();
     state.content = cntnt.chars().collect();
     let mut curr_index = 0;
-    while curr_index < cntnt.len() {
+    let cntnt_last_indx = cntnt.len() - 1;
+    while curr_index < cntnt_last_indx {
         to_json(&mut curr_index, &mut state);
     }
 
     let res = construct_json_data(state.stored_procedures);
+    //panic!("panicking");
     Result::Ok(res)
 }

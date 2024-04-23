@@ -25,7 +25,7 @@ IS
   PROCEDURE proc5 (
     p_in_param1  IN  VARCHAR2,
     p_in_param2  IN  NUMBER,
-    p_out_cursor OUT SYS_REFCURSOR
+    p_out_cursor OUT asasda_REFCURSOR
   );
 
   PROCEDURE proc6 (

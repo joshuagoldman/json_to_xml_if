@@ -199,6 +199,9 @@ mod tests {
 
     #[test]
     fn test_pl_sql_package_to_json_data() {
+        IS_ALLOWED_KEY_REGEX_EXPR
+            .set(Regex::new(r"^[aA-zZ]").unwrap())
+            .unwrap();
         let test_str = include_str!("./embedded_resources/exmple_package.sql")
             .trim()
             .to_string();

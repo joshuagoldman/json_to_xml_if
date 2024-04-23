@@ -2,19 +2,23 @@ use crate::IS_ALLOWED_KEY_REGEX_EXPR;
 
 use super::{is_white_space, ProcDecalarationStage, State};
 
-pub fn variable_stage_variable_name(state: &mut State, index: &mut usize, curr_proc_name: &String) {
+pub fn variable_stage_variable_name(
+    state: &mut State,
+    index: &mut usize,
+    curr_param_name: &String,
+) {
     let char_val = state.content[index.clone()];
-    let new_str_val = format!("{}{}", curr_proc_name, char_val);
+    let new_str_val = format!("{}{}", curr_param_name, char_val);
     match is_white_space(index, state) {
         true => {
-            state.update_param_name(&curr_proc_name);
+            state.update_param_name(&curr_param_name);
             state.update_stage(&ProcDecalarationStage::VariableSeparator(
                 super::VariableSeparationStage::NameSeparator,
             ))
         }
-        false => {
-            super::ProcVariableStages::VariableName(new_str_val);
-        }
+        false => state.update_stage(&ProcDecalarationStage::Variable(
+            super::ProcVariableStages::VariableName(new_str_val),
+        )),
     }
 }
 
@@ -27,7 +31,7 @@ pub fn variable_separator_name(state: &mut State, index: &mut usize) {
         "O" => state.update_stage(&ProcDecalarationStage::Variable(
             super::ProcVariableStages::VariableDirection("O".to_string()),
         )),
-        _ => state.update_stage(&ProcDecalarationStage::NoStoredProcedure),
+        _ => state.abort_param(),
     }
 }
 
@@ -49,9 +53,11 @@ pub fn variable_stage_param_direction(
             super::VariableSeparationStage::InOutSeparator,
         ));
     } else if "OUT".contains(&new_param_dir_val) {
-        super::ProcVariableStages::VariableDirection(new_param_dir_val);
+        state.update_stage(&ProcDecalarationStage::Variable(
+            super::ProcVariableStages::VariableDirection(new_param_dir_val),
+        ));
     } else {
-        state.update_stage(&ProcDecalarationStage::NoStoredProcedure);
+        state.abort_param();
     }
 }
 
@@ -76,19 +82,25 @@ pub fn variable_separator_direction(state: &mut State, index: &mut usize) {
         });
         state.update_stage(&ProcDecalarationStage::Variable(new_var_stage));
     } else {
-        state.update_stage(&ProcDecalarationStage::NoStoredProcedure);
+        state.abort_param()
     }
 }
 
 pub fn variable_stage_param_type_in(state: &mut State, index: &mut usize, param_type_val: &String) {
-    let allowed_types = vec!["VARCHAR2", "VARCHAR", "NUMBER", "BOOL"];
+    let allowed_types = vec!["VARCHAR", "NUMBER", "BOOL"];
     let char_val = state.content[index.clone()];
     let new_param_type_val = format!("{}{}", param_type_val, char_val);
+    let index_plus_one = index.clone() + 1;
 
     if allowed_types
         .iter()
         .any(|at| &new_param_type_val.to_uppercase() == at)
     {
+        if state.content.len() > index_plus_one
+            && format!("{}{}", new_param_type_val, state.content[index_plus_one]) == "VARCHAR2"
+        {
+            *index = index_plus_one;
+        }
         state.update_param_type(&super::OracleDbType::Varchar2);
         state.update_stage(&ProcDecalarationStage::VariableSeparator(
             super::VariableSeparationStage::DbTypeSeparator,
@@ -126,21 +138,22 @@ pub fn variable_stage_param_ref_cursor(
             super::VariableSeparationStage::DbTypeSeparator,
         ));
     } else {
-        super::ProcVariableStages::VariableType(super::ParamTypeInfo {
+        let new_stage = super::ProcVariableStages::VariableType(super::ParamTypeInfo {
             search_type: super::ParamSearchType::EndsWith,
             str_val: new_param_type_val,
         });
+        state.update_stage(&ProcDecalarationStage::Variable(new_stage));
     }
 }
 
 pub fn db_type_separator_stage(state: &mut State, index: &mut usize) {
     let char_val = state.content[index.clone()];
 
-    match char_val {
-        ',' => state.update_stage(&ProcDecalarationStage::VariableSeparator(
-            super::VariableSeparationStage::NameSeparator,
+    match ',' == char_val {
+        true => state.update_stage(&ProcDecalarationStage::VariableSeparator(
+            super::VariableSeparationStage::NewVariable,
         )),
-        _ => state.update_stage(&ProcDecalarationStage::NoStoredProcedure),
+        false => state.update_stage(&ProcDecalarationStage::NoStoredProcedure),
     }
 }
 
@@ -154,6 +167,6 @@ pub fn variable_separator_new_var(state: &mut State, index: &mut usize) {
         true => state.update_stage(&ProcDecalarationStage::Variable(
             super::ProcVariableStages::VariableName(char_val.to_string()),
         )),
-        _ => state.update_stage(&ProcDecalarationStage::NoStoredProcedure),
+        _ => state.abort_param(),
     }
 }
