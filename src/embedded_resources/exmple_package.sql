@@ -5,7 +5,8 @@ IS
    -- p_in_param1  in  varchar2, --- ssssacc
     p_in_param2  in  number,
     p_out_cursor out sys_refcursor,
-    p_in_param3  in  number
+    p_in_param3  out  number,
+    p_in_param4  out  varchar
   );
 
   PROCEDURE proc2 (

@@ -5,9 +5,11 @@ use super::{ParameterDirection, StoredProcedure, StoredProcedureParameter};
 
 fn construct_json_meta_data_param_decision(stored_proc_param: &StoredProcedureParameter) -> String {
     let indentation_str = "    ".to_string();
-    let (param_direction, param_type) = match stored_proc_param.param_type {
-        super::OracleDbType::RefCursor => ("Output", "Refcursor"),
-        super::OracleDbType::Varchar2 => ("Input", "Varchar2"),
+    let (param_direction, param_type) = match (stored_proc_param.param_type.clone(),stored_proc_param.param_direction.clone()) {
+        (super::OracleDbType::RefCursor, ParameterDirection::Output) => ("Output", "Refcursor"),
+        (super::OracleDbType::RefCursor, ParameterDirection::Input) => ("Input", "Refcursor"),
+        (super::OracleDbType::Varchar2, ParameterDirection::Input) => ("Input", "Varchar2"),
+        (super::OracleDbType::Varchar2, ParameterDirection::Output) => ("Output", "Varchar2")
     };
     format!("{}{{\n{} \"paramName\": \"{}\",\n{} \"paramValue\": \"\",\n{} \"paramDirection\": \"{}\",\n{} \"paramType\": \"{}\",\n{} \"position\": \"{}\"\n{}}}",
     indentation_str, 

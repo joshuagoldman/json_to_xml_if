@@ -52,7 +52,7 @@ pub fn variable_stage_param_direction(
         state.update_stage(&ProcDecalarationStage::VariableSeparator(
             super::VariableSeparationStage::InOutSeparator,
         ));
-    } else if "OUT".contains(&new_param_dir_val) {
+    } else if "OUT".contains(&new_param_dir_val.to_uppercase()) {
         state.update_stage(&ProcDecalarationStage::Variable(
             super::ProcVariableStages::VariableDirection(new_param_dir_val),
         ));
@@ -71,7 +71,7 @@ pub fn variable_separator_direction(state: &mut State, index: &mut usize) {
 
     if allowed_init_vals
         .iter()
-        .any(|aiv| aiv.to_uppercase().to_string() == char_val.to_string())
+        .any(|aiv| aiv.to_string() == char_val.to_uppercase().to_string())
     {
         let new_var_stage = super::ProcVariableStages::VariableType(super::ParamTypeInfo {
             search_type: super::ParamSearchType::Word,
@@ -100,7 +100,8 @@ pub fn variable_stage_param_type_in(state: &mut State, index: &mut usize, param_
         .any(|at| &new_param_type_val.to_uppercase() == at)
     {
         if state.content.len() > index_plus_one
-            && format!("{}{}", new_param_type_val, state.content[index_plus_one]) == "VARCHAR2"
+            && format!("{}{}", new_param_type_val, state.content[index_plus_one]).to_uppercase()
+                == "VARCHAR2"
         {
             *index = index_plus_one;
         }
@@ -110,7 +111,7 @@ pub fn variable_stage_param_type_in(state: &mut State, index: &mut usize, param_
         ));
     } else if allowed_types
         .iter()
-        .any(|at| at.to_uppercase().contains(&new_param_type_val))
+        .any(|at| at.contains(&new_param_type_val.to_uppercase()))
     {
         let new_var_stage = super::ProcVariableStages::VariableType(super::ParamTypeInfo {
             search_type: super::ParamSearchType::Word,
