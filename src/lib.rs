@@ -69,6 +69,29 @@ pub extern "C" fn xml_to_json(xml_str: *const c_char, to_camel_case: bool) -> *c
     }
 }
 
+#[no_mangle]
+pub extern "C" fn stored_procedure_to_json(stored_proc_spec: *const c_char) -> *const c_char {
+    IS_ALLOWED_KEY_REGEX_EXPR
+        .set(Regex::new(r"^[aA-zZ]").unwrap())
+        .unwrap_or(());
+    ATTRIBUTES_REGEX_EXPR
+        .set(Regex::new(r"_(A|a)(T|t)(T|t)(R|r)(I|i)(B|b)(U|u)(T|t)(E|e)(S|s)$").unwrap())
+        .unwrap_or(());
+
+    let stored_proc_spec_rust: String;
+    unsafe {
+        if stored_proc_spec.is_null() {
+            return CString::new("xml string is not valid").unwrap().into_raw();
+        }
+        let stored_proc_spec_c_str = CStr::from_ptr(stored_proc_spec);
+        stored_proc_spec_rust = stored_proc_spec_c_str.to_str().unwrap().to_string();
+    }
+    match stored_procedure_to_json::stored_procedure_to_json(&stored_proc_spec_rust) {
+        Ok(ok_res) => CString::new(ok_res).unwrap().into_raw(),
+        Err(err) => CString::new(err).unwrap().into_raw(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
