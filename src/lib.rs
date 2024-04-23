@@ -81,7 +81,9 @@ pub extern "C" fn stored_procedure_to_json(stored_proc_spec: *const c_char) -> *
     let stored_proc_spec_rust: String;
     unsafe {
         if stored_proc_spec.is_null() {
-            return CString::new("xml string is not valid").unwrap().into_raw();
+            return CString::new("plsql package spec string is not valid")
+                .unwrap()
+                .into_raw();
         }
         let stored_proc_spec_c_str = CStr::from_ptr(stored_proc_spec);
         stored_proc_spec_rust = stored_proc_spec_c_str.to_str().unwrap().to_string();
