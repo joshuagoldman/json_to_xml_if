@@ -26,7 +26,6 @@ fn construct_json_meta_data_param_decision(stored_proc_param: &StoredProcedurePa
 }
 
 fn construct_json_meta_data(stored_proc: &StoredProcedure) -> String {
-    println!("{:#?}", stored_proc);
     let params = stored_proc
         .params
         .iter()
@@ -37,7 +36,7 @@ fn construct_json_meta_data(stored_proc: &StoredProcedure) -> String {
     let info_obj = format!("{}\"info\": {{\n{} \"procedureName\": \"{}\"\n{}}}",
                            indentation_str, 
                            indentation_str,
-                           stored_proc.info.procedure_name.to_case(Case::Camel),
+                           stored_proc.info.procedure_name,
                            indentation_str);
     format!("{},\n{}\"params\": [\n{}\n{}]", info_obj,indentation_str, params, indentation_str)
 }

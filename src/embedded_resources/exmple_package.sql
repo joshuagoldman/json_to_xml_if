@@ -1,6 +1,6 @@
 CREATE OR REPLACE PACKAGE my_package
 IS
-  PROCEDURE proc1 (
+  PROCEDURE proc1_camel_case (
     p_in_param1  in  varchar2 default nulls, --- ssssacc
    -- p_in_param1  in  varchar2, --- ssssacc
     p_in_param2  in  number,
