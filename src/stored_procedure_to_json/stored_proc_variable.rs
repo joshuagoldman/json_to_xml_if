@@ -69,7 +69,10 @@ pub fn variable_separator_direction(state: &mut State, index: &mut usize) {
         .unwrap()
         .is_match(&char_val.to_string());
 
-    if allowed_init_vals.iter().any(|aiv| aiv == &char_val) {
+    if allowed_init_vals
+        .iter()
+        .any(|aiv| aiv.to_uppercase().to_string() == char_val.to_string())
+    {
         let new_var_stage = super::ProcVariableStages::VariableType(super::ParamTypeInfo {
             search_type: super::ParamSearchType::Word,
             str_val: char_val.to_string(),
@@ -107,7 +110,7 @@ pub fn variable_stage_param_type_in(state: &mut State, index: &mut usize, param_
         ));
     } else if allowed_types
         .iter()
-        .any(|at| at.contains(&new_param_type_val))
+        .any(|at| at.to_uppercase().contains(&new_param_type_val))
     {
         let new_var_stage = super::ProcVariableStages::VariableType(super::ParamTypeInfo {
             search_type: super::ParamSearchType::Word,
