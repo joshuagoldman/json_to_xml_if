@@ -1,4 +1,5 @@
 use self::{
+    comments::{comment_type_one_liner, comment_type_section, is_comment},
     json_data_construction::construct_json_data,
     stored_proc_variable::{
         db_type_separator_stage, variable_separator_direction, variable_separator_name,
@@ -12,6 +13,7 @@ use self::{
     },
 };
 
+mod comments;
 mod json_data_construction;
 mod stored_proc_variable;
 mod stored_procedure_variable;
@@ -99,6 +101,18 @@ pub enum VariableSeparationStage {
 }
 
 #[derive(Debug, Clone)]
+pub enum CommentType {
+    OneLiner,
+    Section,
+}
+
+#[derive(Debug, Clone)]
+pub struct CommentInfo {
+    comment_type: CommentType,
+    previous_stage: Box<ProcDecalarationStage>,
+}
+
+#[derive(Debug, Clone)]
 pub enum ProcDecalarationStage {
     NoStoredProcedure,
     ProcedureKeyWord,
@@ -106,6 +120,7 @@ pub enum ProcDecalarationStage {
     OpenBracket,
     Variable(ProcVariableStages),
     VariableSeparator(VariableSeparationStage),
+    CommentSection(CommentInfo),
 }
 
 #[derive(Debug)]
@@ -194,6 +209,8 @@ fn should_not_ignore_white_space(index: &mut usize, state: &mut State) -> bool {
         state.curr_stage.clone()
     {
         variable_stage_variable_name(state, index, &curr_proc_name)
+    } else if let ProcDecalarationStage::CommentSection(comment_info) = state.curr_stage.clone() {
+        comment_decision(index, state, comment_info)
     }
 
     true
@@ -237,7 +254,19 @@ fn variable_separation_stages_decision(
     }
 }
 
+fn comment_decision(index: &mut usize, state: &mut State, comment_info: CommentInfo) {
+    match comment_info.comment_type {
+        CommentType::OneLiner => comment_type_one_liner(state, index, &comment_info.previous_stage),
+        CommentType::Section => comment_type_section(state, index, &comment_info.previous_stage),
+    }
+}
+
 fn to_json(index: &mut usize, state: &mut State) {
+    if is_comment(state, index) {
+        *index = index.clone() + 1;
+        return;
+    }
+
     if should_not_ignore_white_space(index, state) {
         *index = index.clone() + 1;
         return;
@@ -256,6 +285,9 @@ fn to_json(index: &mut usize, state: &mut State) {
         ProcDecalarationStage::VariableSeparator(var_sep_stages) => {
             variable_separation_stages_decision(index, state, var_sep_stages)
         }
+        ProcDecalarationStage::CommentSection(comment_info) => {
+            comment_decision(index, state, comment_info)
+        }
     }
 
     *index = index.to_owned() + 1;
@@ -270,7 +302,7 @@ pub fn stored_procedure_to_json(cntnt: &String) -> Result<String, String> {
         to_json(&mut curr_index, &mut state);
     }
 
+    //panic!("panic");
     let res = construct_json_data(state.stored_procedures);
-    //panic!("panicking");
     Result::Ok(res)
 }
