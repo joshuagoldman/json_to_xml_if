@@ -42,7 +42,22 @@ fn construct_json_meta_data(stored_proc: &StoredProcedure) -> String {
     format!("{},\n{}\"params\": [\n{}\n{}]", info_obj,indentation_str, params, indentation_str)
 }
 
+fn modify_param_name(str_val: &String) -> String {
+    let start_var_vals = vec![
+        "PI",
+        "I",
+        "P_IN"
+    ];
+    let mut new_str_val = str_val.to_uppercase().clone();
+    
+    for (_,start_var_val) in start_var_vals.iter().enumerate() {
+        new_str_val = new_str_val.replacen(format!("{}_", start_var_val).as_str(), "", 1);
+    }
+    new_str_val.to_case(Case::Camel)
+}
+
 fn construct_json_for_class(stored_proc: &StoredProcedure) -> String {
+
     let indentation_str = "   ";
     let in_params = stored_proc
         .params
@@ -51,7 +66,7 @@ fn construct_json_for_class(stored_proc: &StoredProcedure) -> String {
             ParameterDirection::Input => true,
             ParameterDirection::Output => false,
         })
-        .map(|p| format!("{} \"{}\": \"\"", indentation_str, p.param_name.to_case(Case::Camel)))
+        .map(|p| format!("{} \"{}\": \"\"", indentation_str, modify_param_name(&p.param_name)))
         .join(",\n");
 
     in_params
