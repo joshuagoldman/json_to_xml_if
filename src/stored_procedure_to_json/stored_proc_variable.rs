@@ -135,9 +135,14 @@ pub fn variable_stage_param_ref_cursor(
     let char_val = state.content[index.clone()];
     let new_param_type_val = format!("{}{}", param_type_val, char_val);
     if char_val == ')' || char_val == ',' || new_param_type_val.len() > 25 {
-        state.update_stage(&ProcDecalarationStage::NoStoredProcedure);
+        state.abort_param()
     } else if new_param_type_val.to_uppercase().ends_with("REFCURSOR") {
         state.update_param_type(&super::OracleDbType::RefCursor);
+        state.update_stage(&ProcDecalarationStage::VariableSeparator(
+            super::VariableSeparationStage::DbTypeSeparator,
+        ));
+    } else if new_param_type_val.to_uppercase().ends_with("%TYPE") {
+        state.update_param_type(&super::OracleDbType::Varchar2);
         state.update_stage(&ProcDecalarationStage::VariableSeparator(
             super::VariableSeparationStage::DbTypeSeparator,
         ));
