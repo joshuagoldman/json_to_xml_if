@@ -67,17 +67,28 @@ fn modify_param_name(str_val: &String) -> String {
 fn construct_json_for_class(stored_proc: &StoredProcedure) -> String {
 
     let indentation_str = "   ";
-    let in_params = stored_proc
+    let mut in_params = stored_proc
         .params
         .iter()
         .filter(|p| match p.param_direction {
             ParameterDirection::Input => true,
             ParameterDirection::Output => false,
         })
-        .map(|p| format!("{} \"{}\": \"\"", indentation_str, modify_param_name(&p.param_name)))
+        .map(|x| x.param_name.clone())
+        .collect::<Vec<String>>();
+
+    if in_params.iter().all(|x| x.to_uppercase().starts_with("I")) {
+        in_params = in_params.iter().map(|x| x.chars().skip(1).collect::<String>())
+        .collect::<Vec<String>>();
+
+    }
+
+    let in_params_str = in_params
+        .iter()
+        .map(|p| format!("{} \"{}\": \"\"", indentation_str, modify_param_name(&p)))
         .join(",\n");
 
-    in_params
+    in_params_str
 }
 
 pub fn construct_json_data(stored_procedures: Vec<StoredProcedure>, package_name: &String) -> String {
