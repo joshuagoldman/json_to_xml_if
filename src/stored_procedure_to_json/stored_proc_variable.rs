@@ -134,7 +134,7 @@ pub fn variable_stage_param_ref_cursor(
 ) {
     let char_val = state.content[index.clone()];
     let new_param_type_val = format!("{}{}", param_type_val, char_val);
-    if char_val == ')' || char_val == ',' || new_param_type_val.len() > 25 {
+    if char_val == ')' || char_val == ',' || new_param_type_val.len() > 50 {
         state.abort_param()
     } else if new_param_type_val.to_uppercase().ends_with("REFCURSOR") {
         state.update_param_type(&super::OracleDbType::RefCursor);

@@ -4,7 +4,7 @@ IS
     p_in_param1  in  varchar2 default nulls, --- ssssacc
    -- p_in_param1  in  varchar2, --- ssssacc
     p_in_param2  in  number,
-    p_in_param_type  in  something.ss%TYPE,
+    p_in_param_type  in  part_hr_extend.user_name%TYPE,
     p_out_cursor out sys_refcursor,
     p_in_param3  out  number,
     p_in_param4  out  varchar
