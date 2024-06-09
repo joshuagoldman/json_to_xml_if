@@ -29,6 +29,7 @@ pub struct StoredProcedureInfo {
 pub enum ParameterDirection {
     Input,
     Output,
+    InputOutput,
 }
 
 #[derive(Clone, Debug)]
@@ -324,7 +325,6 @@ pub fn stored_procedure_to_json(cntnt: &String) -> Result<String, String> {
         to_json(&mut curr_index, &mut state);
     }
 
-    //panic!("panic");
     let res = construct_json_data(state.stored_procedures, &state.package_name);
     Result::Ok(res)
 }

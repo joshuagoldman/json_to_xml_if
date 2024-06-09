@@ -42,7 +42,25 @@ pub fn variable_stage_param_direction(
 ) {
     let char_val = state.content[index.clone()];
     let new_param_dir_val = format!("{}{}", param_dir_val, char_val);
-    if new_param_dir_val.to_uppercase() == "IN" {
+
+    let out_word = "OUT".to_string();
+    let in_out_pos = index.clone() + out_word.len() + 1;
+    let range_procedure = index.clone() + 1..in_out_pos;
+
+    if new_param_dir_val.to_uppercase() == "IN"
+        && state.content.len() - 1 >= in_out_pos
+        && state.content[range_procedure]
+            .iter()
+            .collect::<String>()
+            .to_uppercase()
+            == out_word
+    {
+        *index = in_out_pos - 1;
+        state.update_param_direction(&super::ParameterDirection::InputOutput);
+        state.update_stage(&ProcDecalarationStage::VariableSeparator(
+            super::VariableSeparationStage::InOutSeparator,
+        ));
+    } else if new_param_dir_val.to_uppercase() == "IN" {
         state.update_param_direction(&super::ParameterDirection::Input);
         state.update_stage(&ProcDecalarationStage::VariableSeparator(
             super::VariableSeparationStage::InOutSeparator,

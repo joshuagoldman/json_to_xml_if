@@ -9,7 +9,9 @@ fn construct_json_meta_data_param_decision(stored_proc_param: &StoredProcedurePa
         (super::OracleDbType::RefCursor, ParameterDirection::Output) => ("Output", "Refcursor"),
         (super::OracleDbType::RefCursor, ParameterDirection::Input) => ("Input", "Refcursor"),
         (super::OracleDbType::Varchar2, ParameterDirection::Input) => ("Input", "Varchar2"),
-        (super::OracleDbType::Varchar2, ParameterDirection::Output) => ("Output", "Varchar2")
+        (super::OracleDbType::Varchar2, ParameterDirection::Output) => ("Output", "Varchar2"),
+        (crate::stored_procedure_to_json::OracleDbType::Varchar2, ParameterDirection::InputOutput) => ("InputOutput", "Varchar2"),
+        (crate::stored_procedure_to_json::OracleDbType::RefCursor, ParameterDirection::InputOutput) => ("InputOutput", "RefCursor"),
     };
     format!("{}{{\n{} \"paramName\": \"{}\",\n{} \"paramValue\": \"\",\n{} \"paramDirection\": \"{}\",\n{} \"paramType\": \"{}\",\n{} \"position\": \"{}\"\n{}}}",
     indentation_str, 
@@ -73,6 +75,7 @@ fn construct_json_for_class(stored_proc: &StoredProcedure) -> String {
         .filter(|p| match p.param_direction {
             ParameterDirection::Input => true,
             ParameterDirection::Output => false,
+            ParameterDirection::InputOutput => true,
         })
         .map(|x| x.param_name.clone())
         .collect::<Vec<String>>();
