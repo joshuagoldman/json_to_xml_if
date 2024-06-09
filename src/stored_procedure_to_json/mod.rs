@@ -1,3 +1,8 @@
+use variable_direction::{
+    variable_stage_param_direction_in_out, variable_stage_param_direction_init,
+    variable_stage_param_direction_req_empty_space,
+};
+
 use self::{
     comments::{comment_type_one_liner, comment_type_section, is_comment},
     json_data_construction::construct_json_data,
@@ -9,8 +14,8 @@ use self::{
     stored_proc_variable::{
         db_type_separator_stage, default_keyword_value_stage, default_keywrd_stage,
         variable_separator_direction, variable_separator_name, variable_separator_new_var,
-        variable_stage_param_direction, variable_stage_param_ref_cursor,
-        variable_stage_param_type_in, variable_stage_variable_name,
+        variable_stage_param_ref_cursor, variable_stage_param_type_in,
+        variable_stage_variable_name,
     },
 };
 
@@ -19,6 +24,7 @@ mod json_data_construction;
 mod package_name;
 mod stored_proc;
 mod stored_proc_variable;
+mod variable_direction;
 
 #[derive(Clone, Debug)]
 pub struct StoredProcedureInfo {
@@ -89,9 +95,22 @@ pub struct ParamTypeInfo {
 }
 
 #[derive(Debug, Clone)]
+pub enum InOutDirectionStage {
+    Init,
+    InOut,
+    ReqEmptySpace,
+}
+
+#[derive(Debug, Clone)]
+pub struct InOutDirectionStageInfo {
+    stage: InOutDirectionStage,
+    str_val: String,
+}
+
+#[derive(Debug, Clone)]
 pub enum ProcVariableStages {
     VariableName(String),
-    VariableDirection(String),
+    VariableDirection(InOutDirectionStageInfo),
     VariableType(ParamTypeInfo),
     DefaultKeyWord,
     DefaultValueKeyWord(String),
@@ -227,6 +246,13 @@ fn should_not_ignore_white_space(index: &mut usize, state: &mut State) -> bool {
         comment_decision(index, state, comment_info)
     } else if let ProcDecalarationStage::PackageName(package_name) = state.curr_stage.clone() {
         package_name_stage(state, index, &package_name)
+    } else if let ProcDecalarationStage::Variable(ProcVariableStages::VariableDirection(
+        stage_info,
+    )) = state.curr_stage.clone()
+    {
+        if let InOutDirectionStage::ReqEmptySpace = stage_info.stage {
+            variable_stage_param_direction_req_empty_space(state, index, &stage_info.str_val)
+        }
     }
 
     true
@@ -243,13 +269,33 @@ fn param_type_decision(index: &mut usize, state: &mut State, param_type_info: Pa
     }
 }
 
+fn variable_stages_param_direction(
+    index: &mut usize,
+    state: &mut State,
+    in_out_var_stage_info: &InOutDirectionStageInfo,
+) {
+    match in_out_var_stage_info.stage {
+        InOutDirectionStage::Init => {
+            variable_stage_param_direction_init(state, index, &in_out_var_stage_info.str_val)
+        }
+        InOutDirectionStage::InOut => {
+            variable_stage_param_direction_in_out(state, index, &in_out_var_stage_info.str_val)
+        }
+        InOutDirectionStage::ReqEmptySpace => variable_stage_param_direction_req_empty_space(
+            state,
+            index,
+            &in_out_var_stage_info.str_val,
+        ),
+    }
+}
+
 fn variable_stages(index: &mut usize, state: &mut State, variable_stage: &ProcVariableStages) {
     match variable_stage {
         ProcVariableStages::VariableName(str_val) => {
             variable_stage_variable_name(state, index, &str_val)
         }
-        ProcVariableStages::VariableDirection(str_val) => {
-            variable_stage_param_direction(state, index, str_val)
+        ProcVariableStages::VariableDirection(stage_info) => {
+            variable_stages_param_direction(index, state, &stage_info)
         }
         ProcVariableStages::VariableType(param_type_info) => {
             param_type_decision(index, state, param_type_info.clone())
@@ -325,6 +371,7 @@ pub fn stored_procedure_to_json(cntnt: &String) -> Result<String, String> {
         to_json(&mut curr_index, &mut state);
     }
 
+    //panic!("panic");
     let res = construct_json_data(state.stored_procedures, &state.package_name);
     Result::Ok(res)
 }

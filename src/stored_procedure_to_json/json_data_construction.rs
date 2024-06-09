@@ -69,7 +69,8 @@ fn modify_param_name(str_val: &String) -> String {
 fn construct_json_for_class(stored_proc: &StoredProcedure) -> String {
 
     let indentation_str = "   ";
-    let mut in_params = stored_proc
+
+    let in_params_w_dir = stored_proc
         .params
         .iter()
         .filter(|p| match p.param_direction {
@@ -77,11 +78,24 @@ fn construct_json_for_class(stored_proc: &StoredProcedure) -> String {
             ParameterDirection::Output => false,
             ParameterDirection::InputOutput => true,
         })
-        .map(|x| x.param_name.clone())
+        .map(|x| (x.param_direction.clone(), x.param_name.clone()))
+        .collect::<Vec<(ParameterDirection,String)>>();
+
+    let mut in_params = in_params_w_dir
+        .iter()
+        .map(|x| x.1.clone())
         .collect::<Vec<String>>();
 
-    if in_params.iter().all(|x| x.to_uppercase().starts_with("I")) {
-        in_params = in_params.iter().map(|x| x.chars().skip(1).collect::<String>())
+    if in_params_w_dir.iter().all(|x| match x.0 {
+            ParameterDirection::Input => x.1.to_uppercase().starts_with("I"),
+            ParameterDirection::Output => false,
+            ParameterDirection::InputOutput => x.1.to_uppercase().starts_with("IO")
+        } ) {
+        in_params = in_params_w_dir.iter().map(|x| match x.0 {
+                ParameterDirection::Input => x.1.chars().skip(1).collect::<String>(),
+                ParameterDirection::Output => String::new(),
+                ParameterDirection::InputOutput => x.1.chars().skip(2).collect::<String>()
+        })
         .collect::<Vec<String>>();
 
     }
@@ -95,7 +109,6 @@ fn construct_json_for_class(stored_proc: &StoredProcedure) -> String {
 }
 
 pub fn construct_json_data(stored_procedures: Vec<StoredProcedure>, package_name: &String) -> String {
-    //println!("{:#?}", stored_procedures);
     
     let indentation_str = " ";
     let mut array_cntnt = stored_procedures

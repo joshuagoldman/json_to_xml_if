@@ -1,6 +1,9 @@
 use crate::IS_ALLOWED_KEY_REGEX_EXPR;
 
-use super::{is_white_space, ProcDecalarationStage, ProcVariableStages, State};
+use super::{
+    is_white_space, InOutDirectionStage, InOutDirectionStageInfo, ProcDecalarationStage,
+    ProcVariableStages, State,
+};
 
 pub fn variable_stage_variable_name(
     state: &mut State,
@@ -26,56 +29,18 @@ pub fn variable_separator_name(state: &mut State, index: &mut usize) {
     let char_val = state.content[index.clone()];
     match char_val.to_uppercase().to_string().as_str() {
         "I" => state.update_stage(&ProcDecalarationStage::Variable(
-            super::ProcVariableStages::VariableDirection("I".to_string()),
+            super::ProcVariableStages::VariableDirection(InOutDirectionStageInfo {
+                stage: InOutDirectionStage::Init,
+                str_val: "I".to_string(),
+            }),
         )),
         "O" => state.update_stage(&ProcDecalarationStage::Variable(
-            super::ProcVariableStages::VariableDirection("O".to_string()),
+            super::ProcVariableStages::VariableDirection(InOutDirectionStageInfo {
+                stage: InOutDirectionStage::Init,
+                str_val: "O".to_string(),
+            }),
         )),
         _ => state.abort_param(),
-    }
-}
-
-pub fn variable_stage_param_direction(
-    state: &mut State,
-    index: &mut usize,
-    param_dir_val: &String,
-) {
-    let char_val = state.content[index.clone()];
-    let new_param_dir_val = format!("{}{}", param_dir_val, char_val);
-
-    let out_word = "OUT".to_string();
-    let in_out_pos = index.clone() + out_word.len() + 1;
-    let range_procedure = index.clone() + 1..in_out_pos;
-
-    if new_param_dir_val.to_uppercase() == "IN"
-        && state.content.len() - 1 >= in_out_pos
-        && state.content[range_procedure]
-            .iter()
-            .collect::<String>()
-            .to_uppercase()
-            == out_word
-    {
-        *index = in_out_pos - 1;
-        state.update_param_direction(&super::ParameterDirection::InputOutput);
-        state.update_stage(&ProcDecalarationStage::VariableSeparator(
-            super::VariableSeparationStage::InOutSeparator,
-        ));
-    } else if new_param_dir_val.to_uppercase() == "IN" {
-        state.update_param_direction(&super::ParameterDirection::Input);
-        state.update_stage(&ProcDecalarationStage::VariableSeparator(
-            super::VariableSeparationStage::InOutSeparator,
-        ));
-    } else if new_param_dir_val.to_uppercase() == "OUT" {
-        state.update_param_direction(&super::ParameterDirection::Output);
-        state.update_stage(&ProcDecalarationStage::VariableSeparator(
-            super::VariableSeparationStage::InOutSeparator,
-        ));
-    } else if "OUT".contains(&new_param_dir_val.to_uppercase()) {
-        state.update_stage(&ProcDecalarationStage::Variable(
-            super::ProcVariableStages::VariableDirection(new_param_dir_val),
-        ));
-    } else {
-        state.abort_param();
     }
 }
 
