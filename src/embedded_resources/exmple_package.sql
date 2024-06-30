@@ -5,8 +5,10 @@ IS
    -- p_in_param1  in  varchar2, --- ssssacc
     iparam2  in  number,
     iparam_type  in  part_hr_extend.user_name%TYPE,
+    iparam_no_dir INextend.user_name%TYPE,
     iparam_io  In Out outtpart_inout.user_name%TYPE,
     p_out_cursor out sys_refcursor,
+    p_in_num number,
     p_in_param3  out  number,
     p_in_param4  out  varchar
   );
@@ -17,7 +19,7 @@ IS
     sssslll
     dsdsds
     */
-    p_out_cursor OUT SYS_REFCURSOR
+    p_out_cursor OUT ssssd.ss_ReFCURSOR
   );
 
   PROCEDURE proc3 (
@@ -55,7 +57,7 @@ IS
   );
 
   PROCEDURE proc9 (
-    p_in_param1  IN  VARCHAR,
+    p_in_param1  INout  VARCHAR,
     p_in_param2  IN  VARCHAR,
     p_out_cursor OUT SYS_REFCURSOR
   );

@@ -28,7 +28,12 @@ pub fn variable_stage_param_direction_init(
             }),
         ));
     } else {
-        state.abort_param();
+        state.update_param_direction(&super::ParameterDirection::Input);
+        let new_var_stage = super::ProcVariableStages::VariableType(super::ParamTypeInfo {
+            search_type: super::ParamSearchType::Word,
+            str_val: new_param_dir_val,
+        });
+        state.update_stage(&ProcDecalarationStage::Variable(new_var_stage));
     }
 }
 

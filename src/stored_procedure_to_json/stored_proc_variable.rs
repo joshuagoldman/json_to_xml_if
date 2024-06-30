@@ -40,7 +40,14 @@ pub fn variable_separator_name(state: &mut State, index: &mut usize) {
                 str_val: "O".to_string(),
             }),
         )),
-        _ => state.abort_param(),
+        _ => {
+            state.update_param_direction(&super::ParameterDirection::Input);
+            let new_var_stage = super::ProcVariableStages::VariableType(super::ParamTypeInfo {
+                search_type: super::ParamSearchType::Word,
+                str_val: char_val.to_string(),
+            });
+            state.update_stage(&ProcDecalarationStage::Variable(new_var_stage));
+        }
     }
 }
 
