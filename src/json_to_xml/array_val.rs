@@ -1,3 +1,5 @@
+use std::f32;
+
 use super::{
     last_json_str_char_is_escape,
     models::{ArrayValType, JsonBool, JsonNull, JsonStr, TokenStage, TokenType},
@@ -49,6 +51,7 @@ pub fn array_val_json_number_open_case(
     char_val: &char,
     state: &mut State,
     json_num_as_str: &String,
+    is_float: bool,
 ) {
     let new_num_as_str = format!("{}{}", json_num_as_str, char_val);
     match char_val {
@@ -62,14 +65,28 @@ pub fn array_val_json_number_open_case(
 
             state.update_to_closed_state();
         }
-        _ => match new_num_as_str.parse::<i32>() {
-            Ok(_) => {
+        '.' => {
+            if !is_float {
+                state.update_token_type(TokenType::JsonArray(TokenStage::Content(
+                    ArrayValType::JsonFloat(new_num_as_str),
+                )));
+            } else {
+                unexpected_character_error(char_val, state)
+            }
+        }
+        _ => {
+            if let Ok(_) = new_num_as_str.parse::<i32>() {
                 state.update_token_type(TokenType::JsonArray(TokenStage::Content(
                     ArrayValType::JsonNumber(new_num_as_str),
                 )));
+            } else if let Ok(_) = new_num_as_str.parse::<f32>() {
+                state.update_token_type(TokenType::JsonArray(TokenStage::Content(
+                    ArrayValType::JsonFloat(new_num_as_str),
+                )));
+            } else {
+                unexpected_character_error(char_val, state)
             }
-            _ => unexpected_character_error(char_val, state),
-        },
+        }
     }
 }
 

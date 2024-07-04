@@ -161,7 +161,12 @@ pub fn key_val_json_bool_open_case(char_val: &char, state: &mut State, json_bool
     }
 }
 
-pub fn key_val_json_number_open_case(char_val: &char, state: &mut State, json_num_as_str: &String) {
+pub fn key_val_json_number_open_case(
+    char_val: &char,
+    state: &mut State,
+    json_num_as_str: &String,
+    is_float: bool,
+) {
     let new_num_as_str = format!("{}{}", json_num_as_str, char_val);
     match char_val {
         ',' => {
@@ -181,14 +186,31 @@ pub fn key_val_json_number_open_case(char_val: &char, state: &mut State, json_nu
             state.fields.pop();
             state.update_to_closed_state();
         }
-        _ => match new_num_as_str.parse::<i32>() {
-            Ok(_) => {
+        '.' => {
+            if !is_float {
+                state.update_token_type(TokenType::JsonObject(TokenStage::Content(
+                    KeyValState::ValState(KeyValType::JsonFloat(new_num_as_str.to_owned())),
+                )));
+            } else {
+                unexpected_character_error(char_val, state)
+            }
+            state.update_token_type(TokenType::JsonObject(TokenStage::Content(
+                KeyValState::ValState(KeyValType::JsonNumber(new_num_as_str.to_owned())),
+            )));
+        }
+        _ => {
+            if let Ok(_) = new_num_as_str.parse::<i32>() {
                 state.update_token_type(TokenType::JsonObject(TokenStage::Content(
                     KeyValState::ValState(KeyValType::JsonNumber(new_num_as_str.to_owned())),
                 )));
+            } else if let Ok(_) = new_num_as_str.parse::<f32>() {
+                state.update_token_type(TokenType::JsonObject(TokenStage::Content(
+                    KeyValState::ValState(KeyValType::JsonFloat(new_num_as_str.to_owned())),
+                )));
+            } else {
+                unexpected_character_error(char_val, state);
             }
-            _ => unexpected_character_error(char_val, state),
-        },
+        }
     }
 }
 

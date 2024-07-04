@@ -2,6 +2,8 @@
  "data": "<![CDATA[This is a CDATA value. It can contain special characters like <, >, &, etc.]]>",
   "isTrue": true,
   "number": 94566957,
+  "number_float_zero": 0.4,
+  "number_float": 3.444,
  "data_attributes": {
    "name": "Lis",
    "yrke": "sotare",
@@ -9,7 +11,9 @@
  },
  "nodes": {
   "node": [
+      1.32,
       false,
+      1.32,
     -344,
       true,
       false,

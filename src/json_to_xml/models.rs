@@ -45,6 +45,7 @@ pub enum JsonBool {
 pub enum KeyValType {
     JsonStr(JsonStr),
     JsonNumber(String),
+    JsonFloat(String),
     JsonBoolean(JsonBool),
     Null(JsonNull),
 }
@@ -52,6 +53,7 @@ pub enum KeyValType {
 #[derive(Clone, Debug)]
 pub enum ArrayValType {
     JsonStr(JsonStr),
+    JsonFloat(String),
     JsonNumber(String),
     JsonBoolean(JsonBool),
     Null(JsonNull),

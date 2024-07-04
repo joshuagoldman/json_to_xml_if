@@ -81,7 +81,7 @@ fn key_val_state_val_decision(key_val_state_val: KeyValType, char_val: &char, st
             JsonStr::Closing => key_val_json_str_close_case(char_val, state),
         },
         KeyValType::JsonNumber(json_number) => {
-            key_val_json_number_open_case(char_val, state, &json_number)
+            key_val_json_number_open_case(char_val, state, &json_number, false)
         }
         KeyValType::Null(json_null) => match json_null {
             JsonNull::Open(null_str_val) => {
@@ -95,6 +95,9 @@ fn key_val_state_val_decision(key_val_state_val: KeyValType, char_val: &char, st
             }
             JsonBool::Closing => key_val_json_null_bool_case_closed(char_val, state),
         },
+        KeyValType::JsonFloat(json_number) => {
+            key_val_json_number_open_case(char_val, state, &json_number, true)
+        }
     }
 }
 
@@ -111,7 +114,7 @@ fn token_stage_content_decision(
             JsonStr::Closing => array_val_json_str_close_case(char_val, state),
         },
         ArrayValType::JsonNumber(json_num_str) => {
-            array_val_json_number_open_case(char_val, state, &json_num_str)
+            array_val_json_number_open_case(char_val, state, &json_num_str, false)
         }
         ArrayValType::Null(null_state) => match null_state {
             JsonNull::Open(json_str_val) => {
@@ -125,6 +128,9 @@ fn token_stage_content_decision(
             }
             JsonBool::Closing => array_val_json_null_bool_case_closed(char_val, state),
         },
+        ArrayValType::JsonFloat(json_num_str) => {
+            array_val_json_number_open_case(char_val, state, &json_num_str, true)
+        }
     }
 }
 
