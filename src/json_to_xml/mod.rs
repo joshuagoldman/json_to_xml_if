@@ -1,19 +1,22 @@
+use array_val::{array_val_json_bool_case_open, array_val_json_null_bool_case_closed};
+use key_val::{key_val_json_bool_open_case, key_val_json_null_bool_case_closed};
+use models::JsonBool;
+
 use crate::hebrew_handler::hebrew_str_to_non_hebrew;
 
 use self::{
     array_val::{
-        array_val_json_null_case_closed, array_val_json_null_case_open,
-        array_val_json_number_open_case, array_val_json_str_close_case,
-        array_val_json_str_open_case,
+        array_val_json_null_case_open, array_val_json_number_open_case,
+        array_val_json_str_close_case, array_val_json_str_open_case,
     },
     json_array::{json_array_closed_case, json_array_item_separator_case, json_array_open_case},
     json_object::{
         json_object_closed_case, json_object_item_separator_case, json_object_open_case,
     },
     key_val::{
-        key_closed_cased, key_open_case, key_val_json_null_case_closed,
-        key_val_json_null_case_open, key_val_json_number_open_case, key_val_json_str_close_case,
-        key_val_json_str_open_case, key_val_separator_case,
+        key_closed_cased, key_open_case, key_val_json_null_case_open,
+        key_val_json_number_open_case, key_val_json_str_close_case, key_val_json_str_open_case,
+        key_val_separator_case,
     },
     models::{
         ArrayValType, Field, JsonNull, JsonStr, KeyValState, KeyValType, NestingState, TokenStage,
@@ -84,7 +87,13 @@ fn key_val_state_val_decision(key_val_state_val: KeyValType, char_val: &char, st
             JsonNull::Open(null_str_val) => {
                 key_val_json_null_case_open(char_val, state, &null_str_val)
             }
-            JsonNull::Closing => key_val_json_null_case_closed(char_val, state),
+            JsonNull::Closing => key_val_json_null_bool_case_closed(char_val, state),
+        },
+        KeyValType::JsonBoolean(bool_state) => match bool_state {
+            JsonBool::Open(bool_str_val) => {
+                key_val_json_bool_open_case(char_val, state, &bool_str_val)
+            }
+            JsonBool::Closing => key_val_json_null_bool_case_closed(char_val, state),
         },
     }
 }
@@ -108,7 +117,13 @@ fn token_stage_content_decision(
             JsonNull::Open(json_str_val) => {
                 array_val_json_null_case_open(char_val, state, &json_str_val)
             }
-            JsonNull::Closing => array_val_json_null_case_closed(char_val, state),
+            JsonNull::Closing => array_val_json_null_bool_case_closed(char_val, state),
+        },
+        ArrayValType::JsonBoolean(bool_state) => match bool_state {
+            JsonBool::Open(json_bool_val) => {
+                array_val_json_bool_case_open(char_val, state, &json_bool_val)
+            }
+            JsonBool::Closing => array_val_json_null_bool_case_closed(char_val, state),
         },
     }
 }

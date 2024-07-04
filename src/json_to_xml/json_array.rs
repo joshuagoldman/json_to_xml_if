@@ -1,7 +1,7 @@
 use crate::json_to_xml::models::JsonNull;
 
 use super::{
-    models::{Field, XmlOpenTagOptions},
+    models::{Field, JsonBool, XmlOpenTagOptions},
     unexpected_character_error,
     xml_tag::{add_close_tag, add_open_tag, add_open_tag_val_empty, add_tag_val},
     ArrayValType, JsonStr, NestingState, State, TokenStage, TokenType,
@@ -40,7 +40,7 @@ fn check_null_val_is_attr(state: &mut State) {
 }
 
 pub fn json_array_open_case(char_val: &char, state: &mut State) {
-    match char_val {
+    match char_val.to_lowercase().to_string().chars().nth(0).unwrap() {
         '"' => {
             new_arr_value_handling(state);
             state.update_token_type(TokenType::JsonArray(TokenStage::Content(
@@ -77,7 +77,14 @@ pub fn json_array_open_case(char_val: &char, state: &mut State) {
                 ArrayValType::JsonNumber(char_val.to_string()),
             )));
         }
-        _ => match char_val.to_string().parse::<i16>() {
+        'f' | 't' => {
+            new_arr_value_handling(state);
+
+            state.update_token_type(TokenType::JsonArray(TokenStage::Content(
+                ArrayValType::JsonBoolean(JsonBool::Open(char_val.to_string())),
+            )));
+        }
+        _ => match char_val.to_string().parse::<i32>() {
             Ok(_) => {
                 new_arr_value_handling(state);
 
@@ -106,7 +113,7 @@ pub fn json_array_closed_case(char_val: &char, state: &mut State) {
 }
 
 pub fn json_array_item_separator_case(char_val: &char, state: &mut State) {
-    match char_val {
+    match char_val.to_lowercase().to_string().chars().nth(0).unwrap() {
         '"' => {
             new_arr_value_handling(state);
 
@@ -135,7 +142,14 @@ pub fn json_array_item_separator_case(char_val: &char, state: &mut State) {
                 ArrayValType::JsonNumber(char_val.to_string()),
             )));
         }
-        _ => match char_val.to_string().parse::<i16>() {
+        'f' | 't' => {
+            new_arr_value_handling(state);
+
+            state.update_token_type(TokenType::JsonArray(TokenStage::Content(
+                ArrayValType::JsonBoolean(JsonBool::Open(char_val.to_string())),
+            )));
+        }
+        _ => match char_val.to_string().parse::<i32>() {
             Ok(_) => {
                 new_arr_value_handling(state);
 

@@ -1,6 +1,6 @@
 use super::{
     last_json_str_char_is_escape,
-    models::{ArrayValType, JsonNull, JsonStr, TokenStage, TokenType},
+    models::{ArrayValType, JsonBool, JsonNull, JsonStr, TokenStage, TokenType},
     state::State,
     unexpected_character_error,
     xml_tag::{add_close_tag, add_close_tag_val_empty, add_tag_val},
@@ -62,7 +62,7 @@ pub fn array_val_json_number_open_case(
 
             state.update_to_closed_state();
         }
-        _ => match new_num_as_str.parse::<i16>() {
+        _ => match new_num_as_str.parse::<i32>() {
             Ok(_) => {
                 state.update_token_type(TokenType::JsonArray(TokenStage::Content(
                     ArrayValType::JsonNumber(new_num_as_str),
@@ -94,7 +94,30 @@ pub fn array_val_json_null_case_open(char_val: &char, state: &mut State, curr_st
     }
 }
 
-pub fn array_val_json_null_case_closed(char_val: &char, state: &mut State) {
+pub fn array_val_json_bool_case_open(char_val: &char, state: &mut State, curr_str_val: &String) {
+    let new_str_val = format!("{}{}", curr_str_val, char_val);
+    if vec!["TRUE", "FALSE"]
+        .iter()
+        .any(|x| x == &new_str_val.to_uppercase())
+    {
+        array_close_value_handling(state, &new_str_val.to_lowercase());
+
+        state.update_token_type(TokenType::JsonArray(TokenStage::Content(
+            ArrayValType::JsonBoolean(JsonBool::Closing),
+        )));
+    } else if vec!["TRUE", "FALSE"]
+        .iter()
+        .any(|x| x.contains(new_str_val.to_uppercase().as_str()))
+    {
+        state.update_token_type(TokenType::JsonArray(TokenStage::Content(
+            ArrayValType::JsonBoolean(JsonBool::Open(new_str_val)),
+        )));
+    } else {
+        unexpected_character_error(char_val, state)
+    }
+}
+
+pub fn array_val_json_null_bool_case_closed(char_val: &char, state: &mut State) {
     match char_val {
         ',' => state.update_to_item_separate_state(),
         ']' => {

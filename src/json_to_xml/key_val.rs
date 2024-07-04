@@ -1,5 +1,3 @@
-use std::i16;
-
 use regex::Regex;
 
 use crate::json_to_xml::{
@@ -9,7 +7,7 @@ use crate::json_to_xml::{
 
 use super::{
     last_json_str_char_is_escape,
-    models::{TokenStage, TokenStageKey, TokenType},
+    models::{JsonBool, TokenStage, TokenStageKey, TokenType},
     unexpected_character_error,
     xml_tag::{add_close_tag, add_close_tag_val_empty, add_open_tag_val_empty, add_tag_val},
     State,
@@ -82,7 +80,15 @@ pub fn key_val_separator_case(char_val: &char, state: &mut State) {
                 KeyValState::ValState(KeyValType::JsonNumber(char_val.to_string())),
             )));
         }
-        _ => match char_val.to_string().parse::<i16>() {
+        'f' | 't' => {
+            add_open_tag(state, true, XmlOpenTagOptions::ObjectSimpleVal);
+            state.update_token_type(TokenType::JsonObject(TokenStage::Content(
+                KeyValState::ValState(KeyValType::JsonBoolean(JsonBool::Open(
+                    char_val.to_string(),
+                ))),
+            )));
+        }
+        _ => match char_val.to_string().parse::<i32>() {
             Ok(_) => {
                 add_open_tag(state, true, XmlOpenTagOptions::ObjectSimpleVal);
                 state.update_token_type(TokenType::JsonObject(TokenStage::Content(
@@ -128,6 +134,33 @@ pub fn key_val_json_str_close_case(char_val: &char, state: &mut State) {
     }
 }
 
+pub fn key_val_json_bool_open_case(char_val: &char, state: &mut State, json_bool_as_str: &String) {
+    let bool_val_as_str_updated = format!("{}{}", json_bool_as_str, char_val);
+
+    if bool_val_as_str_updated.to_uppercase() == "TRUE"
+        || bool_val_as_str_updated.to_uppercase() == "FALSE"
+    {
+        add_tag_val(state, &bool_val_as_str_updated.to_lowercase());
+        add_close_tag(state, false);
+        state.fields.pop();
+
+        state.update_token_type(TokenType::JsonObject(TokenStage::Content(
+            KeyValState::ValState(KeyValType::JsonBoolean(JsonBool::Closing)),
+        )));
+    } else if vec!["TRUE", "FALSE"]
+        .iter()
+        .any(|x| x.contains(bool_val_as_str_updated.to_uppercase().as_str()))
+    {
+        state.update_token_type(TokenType::JsonObject(TokenStage::Content(
+            KeyValState::ValState(KeyValType::JsonBoolean(JsonBool::Open(
+                bool_val_as_str_updated,
+            ))),
+        )));
+    } else {
+        unexpected_character_error(char_val, state)
+    }
+}
+
 pub fn key_val_json_number_open_case(char_val: &char, state: &mut State, json_num_as_str: &String) {
     let new_num_as_str = format!("{}{}", json_num_as_str, char_val);
     match char_val {
@@ -148,7 +181,7 @@ pub fn key_val_json_number_open_case(char_val: &char, state: &mut State, json_nu
             state.fields.pop();
             state.update_to_closed_state();
         }
-        _ => match new_num_as_str.parse::<i16>() {
+        _ => match new_num_as_str.parse::<i32>() {
             Ok(_) => {
                 state.update_token_type(TokenType::JsonObject(TokenStage::Content(
                     KeyValState::ValState(KeyValType::JsonNumber(new_num_as_str.to_owned())),
@@ -182,7 +215,7 @@ pub fn key_val_json_null_case_open(char_val: &char, state: &mut State, curr_str_
     }
 }
 
-pub fn key_val_json_null_case_closed(char_val: &char, state: &mut State) {
+pub fn key_val_json_null_bool_case_closed(char_val: &char, state: &mut State) {
     match char_val {
         ',' => {
             state.update_to_item_separate_state();

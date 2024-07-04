@@ -1,5 +1,7 @@
 {
  "data": "<![CDATA[This is a CDATA value. It can contain special characters like <, >, &, etc.]]>",
+  "isTrue": true,
+  "number": 94566957,
  "data_attributes": {
    "name": "Lis",
    "yrke": "sotare",
@@ -7,7 +9,10 @@
  },
  "nodes": {
   "node": [
+      false,
     -344,
+      true,
+      false,
     22,
     null,
     "ץתצמנהבסזשדגכעיחלךףפםןוטארק
